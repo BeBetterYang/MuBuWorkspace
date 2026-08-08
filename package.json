@@ -1,0 +1,46 @@
+{
+  "name": "siwei",
+  "version": "0.18.1",
+  "private": true,
+  "author": "GuGuGuGun",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev-web.mjs",
+    "dev:client": "vite --host 0.0.0.0 --port 5185 --strictPort",
+    "start": "node server/index.mjs",
+    "build": "tsc && vite build",
+    "test": "vitest run && node --test scripts/*.node-test.mjs",
+    "test:e2e": "playwright test",
+    "generate:library-fixtures": "node scripts/generate-library-fixtures.mjs",
+    "preview": "node server/index.mjs"
+  },
+  "dependencies": {
+    "cmdk": "^1.1.1",
+    "dagre": "^0.8.5",
+    "framer-motion": "^12.40.0",
+    "html-to-image": "^1.11.13",
+    "jspdf": "^4.2.1",
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-resizable-panels": "^4.11.2",
+    "reactflow": "^11.11.4",
+    "zustand": "^5.0.13"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/dagre": "^0.7.54",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.20",
+    "jsdom": "^29.1.1",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.16",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.9"
+  }
+}

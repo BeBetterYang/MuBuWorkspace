@@ -1,0 +1,295 @@
+import React from 'react'
+import type { Dispatch, SetStateAction } from 'react'
+import type { Edge, Node } from 'reactflow'
+import type { MindMapAppearance, MindMapLayoutStrategy, MindMapLayoutState, OutlineNode } from '../../../types/document'
+import { createAgentDocumentPreview } from '../../agent/agentChangePlan'
+import type { AgentDocumentPreview } from '../../agent/agentTypes'
+import { findNodeById } from '../mindMapActions'
+import { outlineToGraph } from '../outlineToGraph'
+import {
+  attachAgentInsertionPreviewGraphData,
+  createAgentInsertionPreviewRoot,
+  getAgentInsertionDepthFromGraphNode,
+  getAgentInsertionFromGraphNode,
+} from '../agentInsertionPreviewBuilder'
+import { createBranchSideKey, filterCollapsedBranchSides } from '../branchSideCollapse'
+import { attachLayoutNodeSizes, buildMindMapNodeSizes } from '../nodeDataAssembler'
+import {
+  layoutMindMap,
+  type MindMapLayoutDiagnostics,
+  type MindMapLayoutInput,
+  type MindMapLayoutResult,
+  type MindMapNodeSize,
+} from '../layoutEngine'
+import type { MindMapNodeData } from '../MindMapNode'
+import { DEFAULT_MIND_MAP_LAYOUT_STRATEGY } from '../mindMapLayoutState'
+import { getMindMapLayoutForStrategy } from '../mindMapLayoutState'
+import { resolveMindMapTheme } from '../mindMapThemes'
+
+export interface MindMapLayoutHandlers {
+  startEditing: MindMapNodeData['onStartEditing']
+  selectNode: MindMapNodeData['onSelectNode']
+  toggleBranchSide: MindMapNodeData['onToggleBranchSide']
+  toggleCollapse: MindMapNodeData['onToggleCollapse']
+  updateNodeText: MindMapNodeData['onTextChange']
+  finishEditing: MindMapNodeData['onCommitEdit']
+  cancelEditing: MindMapNodeData['onCancelEdit']
+  handleDelete: MindMapNodeData['onDeleteEmpty']
+  insertSiblingAndEdit: MindMapNodeData['onInsertSibling']
+  insertChildAndEdit: MindMapNodeData['onInsertChild']
+  indentNode: MindMapNodeData['onIndent']
+  outdentNode: MindMapNodeData['onOutdent']
+  moveNode: (nodeId: string, direction: 'up' | 'down') => void
+}
+
+interface UseMindMapLayoutComputationParams {
+  currentDoc: { root: OutlineNode; mindMapLayout?: MindMapLayoutState; mindMapAppearance?: MindMapAppearance } | null
+  pendingAgentPlan: Parameters<typeof createAgentDocumentPreview>[0]
+  collapsedNodeIds: Set<string>
+  validFocusRootNodeId: string | null
+  exportClean: boolean
+  graphRootNode: OutlineNode | null
+  measuredNodeSizes: Record<string, MindMapNodeSize>
+  measuredNodeSizeSignature: string
+  experimentalLayoutEnabled: boolean
+  layoutStrategy: MindMapLayoutStrategy
+  depthByNodeId: Map<string, number>
+  visibleNodeIds: Set<string>
+  collapsedBranchSides: Set<string>
+  activeMatchNodeId: string | null
+  matchedNodeIds: string[]
+  selectedNodeIds: string[]
+  selectedSummaryOwnerId: string | null
+  editingNodeId: string | null
+  searchQuery: string
+  forcePreview: MindMapLayoutResult | null
+  handlers: MindMapLayoutHandlers
+  setNodes: Dispatch<SetStateAction<Node<MindMapNodeData>[]>>
+  setEdges: Dispatch<SetStateAction<Edge[]>>
+  setLayoutDiagnostics: Dispatch<SetStateAction<MindMapLayoutDiagnostics | null>>
+  setFeedback: (message: string) => void
+}
+
+function findDeepestVisibleLeaf(node: OutlineNode, visibleNodeIds: Set<string>): { node: OutlineNode; depth: number } {
+  const visibleChildren = node.children.filter((child) => visibleNodeIds.has(child.id))
+  if (visibleChildren.length === 0) return { node, depth: 0 }
+  return visibleChildren.reduce<{ node: OutlineNode; depth: number }>((deepest, child) => {
+    const candidate = findDeepestVisibleLeaf(child, visibleNodeIds)
+    const withDepth = { node: candidate.node, depth: candidate.depth + 1 }
+    return withDepth.depth >= deepest.depth ? withDepth : deepest
+  }, { node, depth: 0 })
+}
+
+function buildSummaryTargets(root: OutlineNode, visibleNodeIds: Set<string>) {
+  const targets = new Map<string, { ownerId: string; summary: NonNullable<OutlineNode['summary']> }>()
+  const visit = (node: OutlineNode) => {
+    if (node.summary) {
+      const coveredRoots = node.summary.nodeIds.map((id) => findNodeById(root, id)).filter((item): item is OutlineNode => Boolean(item))
+      const target = (coveredRoots.length ? coveredRoots : [node])
+        .map((covered) => findDeepestVisibleLeaf(covered, visibleNodeIds))
+        .reduce((deepest, candidate) => candidate.depth >= deepest.depth ? candidate : deepest).node
+      targets.set(target.id, { ownerId: node.id, summary: node.summary })
+    }
+    node.children.forEach(visit)
+  }
+  visit(root)
+  return targets
+}
+
+export function useMindMapLayoutComputation({
+  currentDoc,
+  pendingAgentPlan,
+  collapsedNodeIds,
+  validFocusRootNodeId,
+  exportClean,
+  graphRootNode,
+  measuredNodeSizes,
+  measuredNodeSizeSignature,
+  experimentalLayoutEnabled,
+  layoutStrategy,
+  depthByNodeId,
+  visibleNodeIds,
+  collapsedBranchSides,
+  activeMatchNodeId,
+  matchedNodeIds,
+  selectedNodeIds,
+  selectedSummaryOwnerId,
+  editingNodeId,
+  searchQuery,
+  forcePreview,
+  handlers,
+  setNodes,
+  setEdges,
+  setLayoutDiagnostics,
+  setFeedback,
+}: UseMindMapLayoutComputationParams): AgentDocumentPreview {
+  const agentPreview = React.useMemo(
+    () => createAgentDocumentPreview(pendingAgentPlan),
+    [pendingAgentPlan],
+  )
+  const mindMapTheme = resolveMindMapTheme(currentDoc?.mindMapAppearance?.themeId)
+  const themeLineColor = mindMapTheme.text
+
+  const previewLayoutRoot = React.useMemo(() => {
+    const root = graphRootNode ?? currentDoc?.root
+    if (!root || exportClean || agentPreview.insertionsByParentId.size === 0) return root ?? null
+
+    // Agent 插入预览需要临时混入待插入节点，让布局和连线能按最终树形提前展示。
+    return createAgentInsertionPreviewRoot(root, agentPreview.insertionsByParentId)
+  }, [agentPreview.insertionsByParentId, currentDoc?.root, exportClean, graphRootNode])
+
+  React.useEffect(() => {
+    if (!currentDoc) return
+
+    const activeStrategy = experimentalLayoutEnabled ? layoutStrategy : DEFAULT_MIND_MAP_LAYOUT_STRATEGY
+    const layoutRoot = previewLayoutRoot ?? graphRootNode ?? currentDoc.root
+    const rawGraph = outlineToGraph(layoutRoot, collapsedNodeIds, undefined)
+    const nodeSizes = buildMindMapNodeSizes(layoutRoot, measuredNodeSizes)
+    const summaryTargets = buildSummaryTargets(currentDoc.root, visibleNodeIds)
+    // 先生成含预览节点的图，再统一交给布局引擎，避免预览节点绕过折叠、聚焦和搜索状态。
+    const graphWithAgentInsertions = attachAgentInsertionPreviewGraphData(
+      rawGraph,
+      agentPreview.insertionsByParentId,
+    )
+    const layoutInput: MindMapLayoutInput = {
+      root: layoutRoot,
+      graphData: {
+        ...graphWithAgentInsertions,
+        nodes: graphWithAgentInsertions.nodes.map((node) => {
+          const sourceNode = findNodeById(currentDoc.root, node.id)
+          const previewInsertion = getAgentInsertionFromGraphNode(node)
+          const data: MindMapNodeData = {
+            label: previewInsertion?.node.text ?? sourceNode?.text ?? '',
+            depth: previewInsertion ? getAgentInsertionDepthFromGraphNode(node) : depthByNodeId.get(node.id) ?? 0,
+            childCount: previewInsertion ? previewInsertion.node.children?.length ?? 0 : sourceNode?.children.length ?? 0,
+            visibleChildCount: previewInsertion ? previewInsertion.node.children?.length ?? 0 : sourceNode?.children.filter((child) => visibleNodeIds.has(child.id)).length ?? 0,
+            collapsed: previewInsertion ? false : Boolean(sourceNode && collapsedNodeIds.has(sourceNode.id)),
+            focused: !previewInsertion && node.id === validFocusRootNodeId,
+            matched: !previewInsertion && !exportClean && matchedNodeIds.includes(node.id),
+            activeMatch: !previewInsertion && !exportClean && node.id === activeMatchNodeId,
+            hasTags: !previewInsertion && Boolean(sourceNode?.tags?.length),
+            note: previewInsertion?.node.note ?? sourceNode?.note,
+            summary: summaryTargets.get(node.id)?.summary,
+            summaryOwnerId: summaryTargets.get(node.id)?.ownerId,
+            summarySelected: summaryTargets.get(node.id)?.ownerId === selectedSummaryOwnerId,
+            checked: previewInsertion?.node.checked ?? sourceNode?.checked,
+            exportClean,
+            agentPreview: previewInsertion || exportClean ? undefined : agentPreview.nodePreviews.get(node.id),
+            agentInsertion: !exportClean && Boolean(previewInsertion),
+            dropState: null,
+            editing: editingNodeId === node.id,
+            format: sourceNode?.format,
+            theme: mindMapTheme,
+            onStartEditing: handlers.startEditing,
+            onSelectNode: handlers.selectNode,
+            leftBranchCollapsed: collapsedBranchSides.has(createBranchSideKey(node.id, 'left')),
+            rightBranchCollapsed: collapsedBranchSides.has(createBranchSideKey(node.id, 'right')),
+            onToggleBranchSide: handlers.toggleBranchSide,
+            onToggleCollapse: handlers.toggleCollapse,
+            onTextChange: handlers.updateNodeText,
+            onCommitEdit: handlers.finishEditing,
+            onCancelEdit: handlers.cancelEditing,
+            onDeleteEmpty: handlers.handleDelete,
+            onInsertSibling: handlers.insertSiblingAndEdit,
+            onInsertChild: handlers.insertChildAndEdit,
+            onIndent: handlers.indentNode,
+            onOutdent: handlers.outdentNode,
+            onMoveUp: (nodeId) => handlers.moveNode(nodeId, 'up'),
+            onMoveDown: (nodeId) => handlers.moveNode(nodeId, 'down'),
+          }
+
+          return {
+            ...node,
+            data,
+            selected: !exportClean && !previewInsertion && selectedNodeIds.includes(node.id),
+          }
+        }),
+      },
+      collapsedNodeIds,
+      visibleNodeIds: new Set(graphWithAgentInsertions.nodes.map((node) => node.id)),
+      strategy: activeStrategy,
+      persistedLayout: getMindMapLayoutForStrategy(currentDoc, activeStrategy),
+      nodeSizes,
+      mode: validFocusRootNodeId || searchQuery || agentPreview.insertionsByParentId.size > 0 ? 'transient' : 'persistent',
+    }
+    const initialLayouted = forcePreview ?? layoutMindMap(layoutInput)
+    const sideFilteredGraph = filterCollapsedBranchSides(
+      layoutInput.graphData,
+      initialLayouted.edges,
+      collapsedBranchSides,
+    )
+    // 分支侧折叠依赖第一次布局后的连线方向，过滤节点后需要重新布局以收拢剩余分支。
+    const layouted = sideFilteredGraph === layoutInput.graphData
+      ? initialLayouted
+      : layoutMindMap({
+        ...layoutInput,
+        graphData: sideFilteredGraph,
+        visibleNodeIds: new Set(sideFilteredGraph.nodes.map((node) => node.id)),
+      })
+
+    if (layouted.diagnostics) {
+      setLayoutDiagnostics(layouted.diagnostics)
+      if (layouted.diagnostics.fallbackReason) {
+        setFeedback(layouted.diagnostics.fallbackReason)
+      }
+    }
+
+    const layoutNodeById = new Map<string, Node<MindMapNodeData>>((layouted.nodes as Node<MindMapNodeData>[]).map((node) => [node.id, node]))
+    const nodesWithSummaryPlacement = layouted.nodes.map((node) => {
+      const summary = node.data.summary
+      if (!summary) return node
+      const coveredNodes = summary.nodeIds.map((id: string) => layoutNodeById.get(id)).filter((item: Node<MindMapNodeData> | undefined): item is Node<MindMapNodeData> => Boolean(item))
+      const centerY = (covered: Node<MindMapNodeData>) => covered.position.y + (nodeSizes[covered.id]?.height ?? 36) / 2
+      const coveredCenters = (coveredNodes.length ? coveredNodes : [node]).map(centerY)
+      const firstCenter = Math.min(...coveredCenters)
+      const lastCenter = Math.max(...coveredCenters)
+      const midpoint = (firstCenter + lastCenter) / 2
+      const summaryHeight = coveredNodes.length <= 1 ? 44 : Math.max(44, lastCenter - firstCenter)
+      return {
+        ...node,
+        data: {
+          ...node.data,
+          summaryTop: midpoint - summaryHeight / 2 - node.position.y,
+          summaryHeight,
+        },
+      }
+    })
+    setNodes(attachLayoutNodeSizes(nodesWithSummaryPlacement, nodeSizes))
+    setEdges(layouted.edges.map((edge) => ({
+      ...edge,
+      style: {
+        ...edge.style,
+        stroke: themeLineColor,
+      },
+    })))
+  }, [
+    activeMatchNodeId,
+    agentPreview,
+    collapsedBranchSides,
+    collapsedNodeIds,
+    currentDoc,
+    depthByNodeId,
+    editingNodeId,
+    experimentalLayoutEnabled,
+    exportClean,
+    forcePreview,
+    graphRootNode,
+    handlers,
+    layoutStrategy,
+    matchedNodeIds,
+    measuredNodeSizeSignature,
+    previewLayoutRoot,
+    searchQuery,
+    selectedNodeIds,
+    selectedSummaryOwnerId,
+    themeLineColor,
+    setEdges,
+    setFeedback,
+    setLayoutDiagnostics,
+    setNodes,
+    validFocusRootNodeId,
+    visibleNodeIds,
+  ])
+
+  return agentPreview
+}

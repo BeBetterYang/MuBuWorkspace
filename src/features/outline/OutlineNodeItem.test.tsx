@@ -1,0 +1,334 @@
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { createDocument, createNode } from '../../test/fixtures'
+import { createDocumentSnapshotKey } from '../agent/agentChangePlan'
+import { useAgentStore } from '../agent/agentStore'
+import { useDocumentStore } from '../document/documentStore'
+import { OutlineEditor } from './OutlineEditor'
+import { OutlineNodeItem } from './OutlineNodeItem'
+
+describe('OutlineNodeItem', () => {
+  beforeEach(() => {
+    useDocumentStore.setState({
+      currentDoc: createDocument(),
+      viewMode: 'outline',
+      selectedNodeId: 'node-2',
+      collapsedNodeIds: new Set<string>(),
+      isDirty: false,
+      saveStatus: 'idle',
+      currentFilePath: null,
+      filter: { query: '', tag: null, checked: 'all' },
+      focusedNodeId: null,
+      focusRequestSeq: 0,
+      canUndo: false,
+      canRedo: false,
+      undoStack: [],
+      redoStack: [],
+      cleanSnapshotKey: null,
+      activeTextEditSession: null,
+      outlineSelection: { anchorNodeId: null, selectedNodeIds: [] },
+    })
+    useAgentStore.setState({
+      pendingPlan: null,
+      error: null,
+      messages: [],
+      isSending: false,
+    })
+  })
+
+  const mockNodeRect = (node: HTMLElement, top: number, height = 40) => {
+    Object.defineProperty(node, 'getBoundingClientRect', {
+      configurable: true,
+      value: () => ({
+        bottom: top + height,
+        height,
+        left: 0,
+        right: 400,
+        top,
+        width: 400,
+        x: 0,
+        y: top,
+        toJSON: () => undefined,
+      }),
+    })
+  }
+
+  it('keeps the note editor popover outside the clipped action toolbar', () => {
+    const node = createDocument().root.children[1]
+
+    render(
+      <OutlineNodeItem
+        node={node}
+        depth={0}
+        path={[1]}
+        parentId="root"
+        isSelected
+        isCollapsed={false}
+        onNavigate={() => undefined}
+      />,
+    )
+
+    fireEvent.click(screen.getByTitle('添加备注'))
+
+    const textarea = screen.getByPlaceholderText('记录补充说明')
+    const toolbar = textarea.closest('[data-node-actions]')
+
+    expect(toolbar).toBeInTheDocument()
+    expect(toolbar).not.toHaveClass('overflow-hidden')
+  })
+
+  it('opens the shared node context menu from an outline node', () => {
+    render(<OutlineEditor />)
+
+    fireEvent.contextMenu(screen.getByText('第一节点').closest('[data-node-id="node-1"]')!)
+
+    expect(screen.getByRole('menu')).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: '新增同级节点' })).toBeEnabled()
+    expect(screen.getByRole('menuitem', { name: '删除节点' })).toBeEnabled()
+    expect(screen.getByRole('menuitem', { name: '向内缩进' })).toBeDisabled()
+  })
+
+  it('inserts a sibling from the outline node context menu and starts editing it', () => {
+    render(<OutlineEditor />)
+
+    fireEvent.contextMenu(screen.getByText('第一节点').closest('[data-node-id="node-1"]')!)
+    fireEvent.click(screen.getByRole('menuitem', { name: '新增同级节点' }))
+
+    const children = useDocumentStore.getState().currentDoc?.root.children ?? []
+    expect(children.map((node) => node.text)).toEqual(['第一节点', '', '第二节点'])
+    expect(screen.getByDisplayValue('')).toBeInTheDocument()
+  })
+
+  it('confirms before deleting an outline node with children from the context menu', () => {
+    render(<OutlineEditor />)
+
+    fireEvent.contextMenu(screen.getByText('第一节点').closest('[data-node-id="node-1"]')!)
+    fireEvent.click(screen.getByRole('menuitem', { name: '删除节点' }))
+
+    const dialog = screen.getByRole('dialog', { name: '删除节点' })
+    expect(within(dialog).getByText('确定删除「第一节点」及其 1 个子节点吗？')).toBeInTheDocument()
+
+    fireEvent.click(within(dialog).getByRole('button', { name: '删除' }))
+
+    expect(useDocumentStore.getState().currentDoc?.root.children.map((node) => node.id)).toEqual(['node-2'])
+  })
+
+  it('shows assistant changes directly inside outline nodes', () => {
+    const doc = useDocumentStore.getState().currentDoc!
+    act(() => {
+      useAgentStore.getState().setPendingPlan({
+        schemaVersion: 1,
+        contextScope: 'currentDocument',
+        documentId: doc.id,
+        snapshotKey: createDocumentSnapshotKey(doc),
+        summary: '插入节点',
+        rationale: '测试预览',
+        riskLevel: 'low',
+        references: [],
+        operations: [
+          {
+            type: 'updateNode',
+            nodeId: 'node-2',
+            text: '助理改写',
+          },
+          {
+            type: 'insertNode',
+            parentNodeId: 'node-1',
+            index: 1,
+            node: { id: 'agent-node', text: '新增节点' },
+          },
+        ],
+      })
+    })
+
+    render(<OutlineEditor />)
+
+    expect(screen.getByText('助理改写')).toBeInTheDocument()
+    expect(screen.getByText('新增节点')).toBeInTheDocument()
+    expect(screen.getByText('将插入')).toBeInTheDocument()
+  })
+
+  it('shows root insertion previews when the outline is otherwise empty', () => {
+    const doc = createDocument()
+    const emptyDoc = {
+      ...doc,
+      root: {
+        ...doc.root,
+        children: [],
+      },
+    }
+    useDocumentStore.setState({ currentDoc: emptyDoc })
+    act(() => {
+      useAgentStore.getState().setPendingPlan({
+        schemaVersion: 1,
+        contextScope: 'currentDocument',
+        documentId: emptyDoc.id,
+        snapshotKey: createDocumentSnapshotKey(emptyDoc),
+        summary: '根节点插入',
+        rationale: '测试预览',
+        riskLevel: 'low',
+        references: [],
+        operations: [
+          {
+            type: 'insertNode',
+            parentNodeId: emptyDoc.root.id,
+            index: 0,
+            node: { id: 'agent-node', text: '计算器开发' },
+          },
+        ],
+      })
+    })
+
+    render(<OutlineEditor />)
+
+    expect(screen.getByText('计算器开发')).toBeInTheDocument()
+    expect(screen.getByText('将插入')).toBeInTheDocument()
+    expect(screen.queryByText('点击缝入第一个节点')).not.toBeInTheDocument()
+  })
+
+  it('splits node text at the caret when pressing Enter', () => {
+    render(<OutlineEditor />)
+
+    const input = screen.getByDisplayValue('第二节点') as HTMLInputElement
+    input.setSelectionRange(1, 1)
+    fireEvent.keyDown(input, { key: 'Enter' })
+
+    expect(useDocumentStore.getState().currentDoc?.root.children.map((node) => node.text)).toEqual([
+      '第一节点',
+      '第',
+      '二节点',
+    ])
+  })
+
+  it('does not split text while IME composition is active', () => {
+    render(<OutlineEditor />)
+
+    const input = screen.getByDisplayValue('第二节点')
+    fireEvent.compositionStart(input)
+    fireEvent.keyDown(input, { key: 'Enter' })
+
+    expect(useDocumentStore.getState().currentDoc?.root.children.map((node) => node.text)).toEqual([
+      '第一节点',
+      '第二节点',
+    ])
+  })
+
+  it('handles collapse shortcuts without changing text input content', () => {
+    render(<OutlineEditor />)
+
+    fireEvent.click(screen.getByText('第一节点'))
+    const firstInput = screen.getByDisplayValue('第一节点')
+    fireEvent.keyDown(firstInput, { key: 'ArrowLeft', ctrlKey: true })
+
+    expect(useDocumentStore.getState().collapsedNodeIds.has('node-1')).toBe(true)
+
+    fireEvent.keyDown(firstInput, { key: 'ArrowRight', ctrlKey: true })
+    expect(useDocumentStore.getState().collapsedNodeIds.has('node-1')).toBe(false)
+    expect(firstInput).toHaveValue('第一节点')
+  })
+
+  it('expands a node that was loaded with a persisted collapsed flag from the outline toggle', () => {
+    const doc = createDocument()
+    useDocumentStore.setState({
+      currentDoc: {
+        ...doc,
+        root: {
+          ...doc.root,
+          children: [
+            {
+              ...doc.root.children[0],
+              collapsed: true,
+            },
+            doc.root.children[1],
+          ],
+        },
+      },
+      collapsedNodeIds: new Set(['node-1']),
+    })
+
+    render(<OutlineEditor />)
+
+    expect(screen.queryByText('第一子节点')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByTitle('展开'))
+
+    expect(screen.getByText('第一子节点')).toBeInTheDocument()
+    expect(useDocumentStore.getState().collapsedNodeIds.has('node-1')).toBe(false)
+    expect(useDocumentStore.getState().currentDoc?.root.children[0].collapsed).toBe(false)
+  })
+
+  it('selects a range and moves it with the batch shortcut', () => {
+    useDocumentStore.setState({
+      currentDoc: {
+        ...createDocument(),
+        root: createNode('root', '测试文档', [
+          createNode('node-a', 'A'),
+          createNode('node-b', 'B'),
+          createNode('node-c', 'C'),
+          createNode('node-d', 'D'),
+        ]),
+      },
+      selectedNodeId: 'node-b',
+      outlineSelection: { anchorNodeId: 'node-b', selectedNodeIds: ['node-b'] },
+    })
+
+    render(<OutlineEditor />)
+
+    fireEvent.click(screen.getByText('C'), { shiftKey: true })
+    expect(screen.getByText('已选择 2 个节点')).toBeInTheDocument()
+
+    fireEvent.keyDown(screen.getByDisplayValue('C'), { key: 'ArrowDown', ctrlKey: true })
+
+    expect(useDocumentStore.getState().currentDoc?.root.children.map((node) => node.text)).toEqual([
+      'A',
+      'D',
+      'B',
+      'C',
+    ])
+  })
+
+  it('reorders nodes when dragging a grip onto a sibling with pointer events', () => {
+    render(<OutlineEditor />)
+
+    const sourceGrip = document.querySelector('[data-node-id="node-2"] [title="拖动排序"]') as HTMLElement
+    const sourceNode = document.querySelector('[data-node-id="node-2"]') as HTMLElement
+    const targetNode = document.querySelector('[data-node-id="node-1"]') as HTMLElement
+    mockNodeRect(targetNode, 0)
+    mockNodeRect(sourceNode, 40)
+
+    fireEvent.pointerDown(sourceGrip, { button: 0, pointerId: 1, clientX: 10, clientY: 60 })
+    expect(sourceNode).toHaveAttribute('data-drag-state', 'source')
+
+    fireEvent.pointerMove(window, { pointerId: 1, clientX: 34, clientY: 20 })
+    expect(sourceNode).toHaveStyle({ transform: 'translate3d(24px, -40px, 0) scale(1.015)' })
+    expect(targetNode).toHaveAttribute('data-drop-target', 'true')
+    expect(targetNode).toHaveStyle({ transform: 'translate3d(0, 40px, 0)' })
+
+    fireEvent.pointerUp(window, { pointerId: 1, clientX: 34, clientY: 20 })
+
+    expect(useDocumentStore.getState().currentDoc?.root.children.map((node) => node.id)).toEqual([
+      'node-2',
+      'node-1',
+    ])
+    expect(sourceNode).not.toHaveAttribute('data-drag-state')
+    expect(targetNode).not.toHaveAttribute('data-drop-target')
+  })
+
+  it('ignores pointer drops without a valid target node', () => {
+    render(<OutlineEditor />)
+
+    const sourceGrip = document.querySelector('[data-node-id="node-2"] [title="拖动排序"]') as HTMLElement
+    const sourceNode = document.querySelector('[data-node-id="node-2"]') as HTMLElement
+    const targetNode = document.querySelector('[data-node-id="node-1"]') as HTMLElement
+    mockNodeRect(targetNode, 0)
+    mockNodeRect(sourceNode, 40)
+
+    fireEvent.pointerDown(sourceGrip, { button: 0, pointerId: 1 })
+    fireEvent.pointerUp(window, { pointerId: 1, clientX: 100, clientY: 240 })
+
+    expect(useDocumentStore.getState().currentDoc?.root.children.map((node) => node.id)).toEqual([
+      'node-1',
+      'node-2',
+    ])
+  })
+})

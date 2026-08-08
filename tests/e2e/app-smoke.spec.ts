@@ -1,0 +1,164 @@
+import { expect, test, type Page } from '@playwright/test'
+
+async function outlineNodeTexts(page: Page) {
+  return page.locator('.group').evaluateAll((rows) =>
+    rows.map((row) => {
+      const input = row.querySelector('input')
+      return input instanceof HTMLInputElement ? input.value : row.textContent?.trim() ?? ''
+    }),
+  )
+}
+
+async function openApp(page: Page) {
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
+}
+
+test('renders the main workspace and switches views', async ({ page }) => {
+  await openApp(page)
+
+  await expect(page.getByText('Siwei Workspace')).toBeVisible()
+  await expect(page.getByRole('button', { name: '大纲' })).toBeVisible()
+
+  await page.getByRole('button', { name: '思维导图' }).click()
+  await expect(page.getByRole('button', { name: '思维导图' })).toBeVisible()
+
+  await page.getByTitle('搜索 (Ctrl+F)').click()
+  await expect(page.getByPlaceholder('输入关键词进行搜索...')).toBeVisible()
+  await expect(page.getByText('工作台')).toBeVisible()
+})
+
+test('supports undo and redo from toolbar buttons and keyboard shortcuts', async ({ page }) => {
+  await openApp(page)
+
+  const undoButton = page.getByTitle('撤销 (Ctrl+Z)')
+  const redoButton = page.getByTitle('重做 (Ctrl+Shift+Z)')
+  await expect(undoButton).toBeDisabled()
+  await expect(redoButton).toBeDisabled()
+
+  const firstNodeInput = page.getByPlaceholder('输入编织内容...')
+  await expect(firstNodeInput).toHaveValue('开始记录你的想法')
+  await firstNodeInput.click()
+  await firstNodeInput.fill('第一条想法')
+
+  await expect(undoButton).toBeEnabled()
+  await expect(redoButton).toBeDisabled()
+
+  await undoButton.click()
+  await expect(firstNodeInput).toHaveValue('开始记录你的想法')
+  await expect(redoButton).toBeEnabled()
+
+  await redoButton.click()
+  await expect(firstNodeInput).toHaveValue('第一条想法')
+
+  await page.keyboard.press(process.platform === 'darwin' ? 'Meta+Z' : 'Control+Z')
+  await expect(firstNodeInput).toHaveValue('开始记录你的想法')
+
+  await page.keyboard.press(process.platform === 'darwin' ? 'Meta+Shift+Z' : 'Control+Shift+Z')
+  await expect(firstNodeInput).toHaveValue('第一条想法')
+})
+
+test('reorders outline nodes by dragging the knit grip handle', async ({ page }) => {
+  await openApp(page)
+
+  const firstNodeInput = page.getByPlaceholder('输入编织内容...')
+  await expect(firstNodeInput).toHaveValue('开始记录你的想法')
+  await firstNodeInput.click()
+  await firstNodeInput.press('End')
+  await firstNodeInput.press('Enter')
+  await page.getByPlaceholder('输入编织内容...').fill('第二条想法')
+
+  const sourceHandle = page.getByTitle('拖动排序').nth(1)
+  const targetHandle = page.getByTitle('拖动排序').first()
+  await sourceHandle.dragTo(targetHandle)
+
+  const nodeTexts = await outlineNodeTexts(page)
+  expect(nodeTexts.slice(0, 2)).toEqual(['第二条想法', '开始记录你的想法'])
+
+  await page.keyboard.press(process.platform === 'darwin' ? 'Meta+Z' : 'Control+Z')
+  const revertedNodeTexts = await outlineNodeTexts(page)
+  expect(revertedNodeTexts.slice(0, 2)).toEqual(['开始记录你的想法', '第二条想法'])
+})
+
+test('edits nodes from the mind map and syncs the split outline', async ({ page }) => {
+  await openApp(page)
+
+  const firstNodeInput = page.getByPlaceholder('输入编织内容...')
+  await expect(firstNodeInput).toHaveValue('开始记录你的想法')
+
+  await page.getByRole('button', { name: '思维导图' }).click()
+  await page.getByText('开始记录你的想法').click({ button: 'right' })
+  await page.getByRole('menuitem', { name: '新增同级节点' }).click()
+  await page.getByLabel('编辑节点文本').fill('导图同级节点')
+  await page.getByLabel('编辑节点文本').press('Escape')
+  await page.getByText('导图同级节点').click({ button: 'right' })
+  await page.getByRole('menuitem', { name: '新增子节点' }).click()
+  await page.getByLabel('编辑节点文本').fill('导图子节点')
+  await page.getByLabel('编辑节点文本').press('Escape')
+  await expect(page.getByText('导图同级节点')).toBeVisible()
+  await expect(page.getByText('导图子节点')).toBeVisible()
+
+  await page.getByText('导图同级节点').click({ button: 'right' })
+  await page.getByRole('menuitem', { name: '折叠' }).click()
+  await expect(page.getByText('1 个子节点')).toBeVisible()
+
+  await page.getByText('导图同级节点').click({ button: 'right' })
+  await page.getByRole('menuitem', { name: '展开' }).click()
+  await expect(page.getByText('导图子节点')).toBeVisible()
+
+  await page.getByText('导图子节点').click({ button: 'right' })
+  await page.getByRole('menuitem', { name: '删除节点' }).click()
+  await expect(page.getByText('已删除节点')).toBeVisible()
+  await expect(page.getByText('导图子节点')).toHaveCount(0)
+
+  await page.keyboard.press(process.platform === 'darwin' ? 'Meta+Z' : 'Control+Z')
+  await expect(page.getByText('导图子节点')).toBeVisible()
+
+  await page.getByRole('button', { name: '分屏' }).click()
+  await expect(page.getByText('导图同级节点')).toHaveCount(2)
+  await expect(page.getByText('导图子节点').first()).toBeVisible()
+})
+
+test('filters by tag and manages tasks from the workspace panel', async ({ page }) => {
+  await openApp(page)
+
+  const firstNodeInput = page.getByPlaceholder('输入编织内容...')
+  await expect(firstNodeInput).toHaveValue('开始记录你的想法')
+  await firstNodeInput.click()
+
+  await page.getByTitle('添加标签').click({ force: true })
+  await page.getByPlaceholder('标签').fill('项目')
+  await page.keyboard.press('Enter')
+
+  await page.getByTitle('转为待办').click({ force: true })
+
+  await page.getByTitle('搜索 (Ctrl+F)').click()
+  await page.getByRole('button', { name: '标签', exact: true }).click()
+  const tagSummary = page.getByRole('button', { name: '#项目 1 个节点' })
+  await expect(tagSummary).toBeVisible()
+
+  await tagSummary.click()
+  await expect(firstNodeInput).toBeVisible()
+
+  await page.getByRole('button', { name: '任务', exact: true }).click()
+  await expect(page.getByText('开始记录你的想法')).toBeVisible()
+
+  await page.getByTitle('标记为已完成').click()
+  await page.getByRole('button', { name: '已完成' }).click()
+  await expect(page.getByText('开始记录你的想法')).toBeVisible()
+})
+
+test('opens settings workspace and updates effective controls', async ({ page }) => {
+  await openApp(page)
+
+  await page.getByRole('button', { name: '设置' }).click()
+  await expect(page.getByRole('heading', { name: '设置' })).toBeVisible()
+
+  await page.getByRole('button', { name: '导图', exact: true }).click()
+  await expect(page.getByRole('button', { name: '导图', exact: true })).toHaveClass(/bg-zinc-900/)
+
+  await page.getByRole('button', { name: '收起', exact: true }).click()
+  await expect(page.getByTitle('设置')).toBeVisible()
+
+  await page.getByTitle('设置').click()
+  await expect(page.getByRole('heading', { name: '设置' })).toBeVisible()
+})

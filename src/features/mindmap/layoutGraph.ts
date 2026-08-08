@@ -1,0 +1,74 @@
+import dagre from 'dagre'
+import { Node as FlowNode, Edge as FlowEdge, Position } from 'reactflow'
+import { GraphData } from './outlineToGraph'
+import { MindMapLayoutPosition } from '../../types/document'
+
+interface LayoutGraphOptions {
+  savedLayout?: Record<string, MindMapLayoutPosition>
+  preserveSavedPositions?: boolean
+  nodeSizes?: Record<string, { width: number; height: number }>
+}
+
+/**
+ * Positions the React Flow elements in a Left-to-Right (LR) hierarchy using the Dagre layout engine.
+ */
+export function layoutGraph(graphData: GraphData, options: LayoutGraphOptions = {}): GraphData {
+  const { nodes, edges } = graphData
+  if (nodes.length === 0) return graphData
+
+  const dagreGraph = new dagre.graphlib.Graph()
+  dagreGraph.setDefaultEdgeLabel(() => ({}))
+
+  const nodeWidth = 120
+  const nodeHeight = 36
+
+  // Set up graph layout options
+  // rankdir: 'LR' (Left-to-Right) is standard for mind maps
+  // nodesep: separation between nodes in the same rank
+  // ranksep: separation between ranks (columns)
+  dagreGraph.setGraph({
+    rankdir: 'LR',
+    nodesep: 6,
+    ranksep: 36,
+    marginx: 20,
+    marginy: 20,
+  })
+
+  // Add nodes to dagre
+  nodes.forEach((node) => {
+    const size = options.nodeSizes?.[node.id] ?? { width: nodeWidth, height: nodeHeight }
+    dagreGraph.setNode(node.id, size)
+  })
+
+  // Add edges to dagre
+  edges.forEach((edge) => {
+    dagreGraph.setEdge(edge.source, edge.target)
+  })
+
+  // Compute layout
+  dagre.layout(dagreGraph)
+
+  // Map computed coordinates back to nodes
+  const layoutedNodes = nodes.map((node) => {
+    const dagreNode = dagreGraph.node(node.id)
+    const savedPosition = options.savedLayout?.[node.id]
+    const size = options.nodeSizes?.[node.id] ?? { width: nodeWidth, height: nodeHeight }
+    
+    return {
+      ...node,
+      targetPosition: Position.Left,
+      sourcePosition: Position.Right,
+      position: options.preserveSavedPositions && savedPosition
+        ? savedPosition
+        : {
+          x: dagreNode.x - size.width / 2,
+          y: dagreNode.y - size.height / 2,
+        },
+    }
+  })
+
+  return {
+    nodes: layoutedNodes,
+    edges,
+  }
+}
