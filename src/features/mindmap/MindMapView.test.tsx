@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createDocument } from '../../test/fixtures'
+import { createDocument, createNode } from '../../test/fixtures'
 import { createDocumentSnapshotKey } from '../agent/agentChangePlan'
 import { useAgentStore } from '../agent/agentStore'
 import type { AgentChangePlan, AgentOperation } from '../agent/agentTypes'
@@ -8,6 +8,11 @@ import { useDocumentStore } from '../document/documentStore'
 import { useSettingsStore } from '../settings/settingsStore'
 import { MindMapView } from './MindMapView'
 import { DEFAULT_SETTINGS } from '../../types/settings'
+
+const flowViewportSpies = vi.hoisted(() => ({
+  setCenter: vi.fn(),
+  setViewport: vi.fn(),
+}))
 
 vi.mock('reactflow', async () => {
   const React = await import('react')
@@ -35,7 +40,8 @@ vi.mock('reactflow', async () => {
     onNodeDragStop?: (event: React.MouseEvent, node: MockFlowNode, nodes: MockFlowNode[]) => void
     onNodeDrag?: (event: React.MouseEvent, node: MockFlowNode) => void
     onNodeDragStart?: (event: React.MouseEvent, node: MockFlowNode) => void
-    onInit?: (instance: { setCenter: ReturnType<typeof vi.fn> }) => void
+    onInit?: (instance: { setCenter: ReturnType<typeof vi.fn>; setViewport: ReturnType<typeof vi.fn> }) => void
+    onMoveEnd?: (event: null, viewport: { x: number; y: number; zoom: number }) => void
     onPaneClick?: () => void
     onKeyDown?: (event: React.KeyboardEvent) => void
     children?: React.ReactNode
@@ -54,6 +60,7 @@ vi.mock('reactflow', async () => {
       onNodeDragStart,
       onNodeDragStop,
       onInit,
+      onMoveEnd,
       onPaneClick,
       onKeyDown,
       children,
@@ -62,7 +69,7 @@ vi.mock('reactflow', async () => {
       onConnect,
     }: MockReactFlowProps) => {
       React.useEffect(() => {
-        onInit?.({ setCenter: vi.fn() })
+        onInit?.(flowViewportSpies)
       }, [onInit])
 
       return (
@@ -153,6 +160,7 @@ vi.mock('reactflow', async () => {
             }}
           />
           {children}
+          <button type="button" data-testid="flow-move-end" onClick={(event) => { event.stopPropagation(); onMoveEnd?.(null, { x: 24, y: 36, zoom: 1.25 }) }} />
         </div>
       )
     },
@@ -185,6 +193,8 @@ function expandMindMapToolbar() {
 
 describe('MindMapView', () => {
   beforeEach(() => {
+    flowViewportSpies.setCenter.mockReset()
+    flowViewportSpies.setViewport.mockReset()
     useDocumentStore.setState({
       currentDoc: createDocument(),
       viewMode: 'mindmap',
@@ -240,6 +250,55 @@ describe('MindMapView', () => {
     expect(useDocumentStore.getState().currentDoc?.root.children[1].text).toBe('导图重命名')
     expect(useDocumentStore.getState().selectedNodeId).toBe('node-2')
     expect(screen.queryByDisplayValue('导图重命名')).not.toBeInTheDocument()
+  })
+
+  it('edits the title row directly without hiding description or table content', async () => {
+    useDocumentStore.setState((state) => ({
+      currentDoc: state.currentDoc ? {
+        ...state.currentDoc,
+        root: {
+          ...state.currentDoc.root,
+          children: state.currentDoc.root.children.map((node) => node.id === 'node-2' ? {
+            ...node,
+            note: '保留的描述',
+            format: { ...node.format, table: [['表格内容']] },
+          } : node),
+        },
+      } : null,
+    }))
+    render(<MindMapView />)
+
+    fireEvent.click(screen.getByText('第二节点'))
+
+    await waitFor(() => expect(screen.getByRole('textbox', { name: '编辑节点文本' })).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: '保留的描述' })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: '表格第1行第1列' })).toBeInTheDocument()
+  })
+
+  it('restores the saved viewport and persists the last viewport per layout', async () => {
+    useDocumentStore.setState((state) => ({
+      currentDoc: state.currentDoc ? {
+        ...state.currentDoc,
+        mindMapViewports: { 'classic-dagre': { x: 80, y: 120, zoom: 0.8 } },
+      } : null,
+    }))
+    render(<MindMapView />)
+
+    await waitFor(() => expect(flowViewportSpies.setViewport).toHaveBeenCalledWith({ x: 80, y: 120, zoom: 0.8 }, { duration: 0 }))
+    fireEvent.click(screen.getByTestId('flow-move-end'))
+    expect(useDocumentStore.getState().currentDoc?.mindMapViewports?.['classic-dagre']).toEqual({ x: 24, y: 36, zoom: 1.25 })
+  })
+
+  it('focuses the first level node at 100% when the document has no saved viewport', async () => {
+    render(<MindMapView />)
+
+    await waitFor(() => expect(flowViewportSpies.setCenter).toHaveBeenCalled())
+    const firstLevelNode = screen.getByTestId('flow-node-node-1')
+    expect(flowViewportSpies.setCenter).toHaveBeenCalledWith(
+      Number(firstLevelNode.dataset.positionX) + Number(firstLevelNode.dataset.width) / 2,
+      Number(firstLevelNode.dataset.positionY) + Number(firstLevelNode.dataset.height) / 2,
+      { zoom: 1, duration: 180 },
+    )
   })
 
   it('keeps the formatting toolbar hidden until a node is clicked', () => {
@@ -302,6 +361,24 @@ describe('MindMapView', () => {
     expect(screen.getByRole('button', { name: '节点内描述' })).toBeInTheDocument()
   })
 
+  it('adds a table inline and only removes it after confirmation', () => {
+    const confirm = vi.spyOn(window, 'confirm')
+    render(<MindMapView />)
+
+    fireEvent.click(screen.getByTestId('flow-node-node-2'))
+    fireEvent.click(screen.getByRole('button', { name: '插入表格' }))
+    expect(screen.getByRole('textbox', { name: '表格第1行第1列' })).toBeInTheDocument()
+    expect(screen.queryByText('删除表格')).not.toBeInTheDocument()
+
+    confirm.mockReturnValueOnce(false)
+    fireEvent.click(screen.getByRole('button', { name: '插入表格' }))
+    expect(useDocumentStore.getState().currentDoc?.root.children[1].format?.table).toBeDefined()
+
+    confirm.mockReturnValueOnce(true)
+    fireEvent.click(screen.getByRole('button', { name: '插入表格' }))
+    expect(useDocumentStore.getState().currentDoc?.root.children[1].format?.table).toBeUndefined()
+  })
+
   it('adds one summary for selected siblings and keeps it on the deepest leaf', async () => {
     render(<MindMapView />)
 
@@ -345,6 +422,35 @@ describe('MindMapView', () => {
     fireEvent.click(screen.getByRole('button', { name: '概要' }))
     expect(useDocumentStore.getState().currentDoc?.root.children[0].summary?.nodeIds).toEqual(['node-1', 'node-2'])
     expect(Number(screen.getByTestId('mindmap-summary-node-1').style.height.replace('px', ''))).toBeGreaterThan(0)
+  })
+
+  it('places a balanced left-branch summary on the left and spans terminal descendants', async () => {
+    useDocumentStore.setState((state) => ({
+      currentDoc: state.currentDoc ? {
+        ...state.currentDoc,
+        mindMapLayout: { engineVersion: 3, strategy: 'balanced-mindmap', nodes: {} },
+        root: {
+          ...state.currentDoc.root,
+          children: state.currentDoc.root.children.map((node) => node.id === 'node-1' ? {
+            ...node,
+            summary: { text: '左侧概要', nodeIds: ['node-1'] },
+            children: [...node.children, createNode('node-1-2', '第二个末级节点')],
+          } : node),
+        },
+      } : null,
+    }))
+    render(<MindMapView />)
+
+    await waitFor(() => expect(screen.getByTestId('mindmap-summary-node-1')).toHaveAttribute('data-summary-side', 'left'))
+    const summary = screen.getByTestId('mindmap-summary-node-1')
+    const firstLeaf = screen.getByTestId('flow-node-node-1-1')
+    const lastLeaf = screen.getByTestId('flow-node-node-1-2')
+    const expectedSpan = Math.abs(
+      Number(lastLeaf.dataset.positionY) + Number(lastLeaf.dataset.height) / 2
+      - Number(firstLeaf.dataset.positionY) - Number(firstLeaf.dataset.height) / 2,
+    )
+    expect(Number(summary.style.height.replace('px', ''))).toBeCloseTo(Math.max(44, expectedSpan))
+    expect(summary).toHaveClass('right-full')
   })
 
   it('selects a summary as a rich node and applies toolbar functions to the summary itself', () => {

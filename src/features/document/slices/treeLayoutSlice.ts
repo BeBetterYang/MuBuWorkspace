@@ -9,7 +9,7 @@ import {
 import type { DocumentStoreContext } from '../documentStoreContext'
 import type { DocumentState, NodeOperationState } from '../documentStoreTypes'
 
-type TreeLayoutActions = Pick<DocumentState, 'commitMindMapLayout' | 'updateMindMapAppearance' | 'getNodeOperationState'>
+type TreeLayoutActions = Pick<DocumentState, 'commitMindMapLayout' | 'commitMindMapViewport' | 'updateMindMapAppearance' | 'getNodeOperationState'>
 
 export function createTreeLayoutSlice(context: DocumentStoreContext): TreeLayoutActions {
   const { get, set, beginMutation, setHistoryAfterMutation } = context
@@ -65,6 +65,27 @@ export function createTreeLayoutSlice(context: DocumentStoreContext): TreeLayout
           : createSnapshot(updatedDoc, state.selectedNodeId, state.collapsedNodeIds).key !== state.cleanSnapshotKey,
       }))
       setHistoryAfterMutation(before)
+    },
+
+    commitMindMapViewport: (strategy, viewport) => {
+      const { currentDoc } = get()
+      if (!currentDoc) return
+      const previous = currentDoc.mindMapViewports?.[strategy]
+      if (previous && previous.x === viewport.x && previous.y === viewport.y && previous.zoom === viewport.zoom) return
+      const updatedDoc = {
+        ...currentDoc,
+        updatedAt: Date.now(),
+        mindMapViewports: {
+          ...currentDoc.mindMapViewports,
+          [strategy]: viewport,
+        },
+      }
+      set((state) => ({
+        currentDoc: updatedDoc,
+        isDirty: state.cleanSnapshotKey === null
+          ? true
+          : createSnapshot(updatedDoc, state.selectedNodeId, state.collapsedNodeIds).key !== state.cleanSnapshotKey,
+      }))
     },
 
     getNodeOperationState: (nodeId) => {

@@ -5,6 +5,7 @@ interface MindMapInlineEditorProps {
   nodeId?: string
   value: string
   format?: NodeTextFormat
+  themeColor?: string
   onChange: (value: string) => void
   onCommit: () => void
   onCancel: () => void
@@ -19,6 +20,7 @@ export const MindMapInlineEditor: React.FC<MindMapInlineEditorProps> = ({
   nodeId = '',
   value,
   format,
+  themeColor,
   onChange,
   onCommit,
   onCancel,
@@ -117,7 +119,7 @@ export const MindMapInlineEditor: React.FC<MindMapInlineEditorProps> = ({
       rows={1}
       aria-label="编辑节点文本"
       className="nodrag nopan block w-auto min-w-[36px] max-w-[626px] touch-manipulation resize-none overflow-hidden whitespace-pre-wrap border-0 bg-transparent p-0 text-left text-sm font-medium leading-[1.45] text-zinc-800 shadow-none outline-none [field-sizing:content] focus:border-0 focus:ring-0"
-      style={{ color: format?.color, fontSize: format?.fontSize, fontWeight: format?.bold ? 700 : undefined, fontStyle: format?.italic ? 'italic' : undefined, textDecoration: [format?.underline && 'underline', format?.strike && 'line-through'].filter(Boolean).join(' ') || undefined }}
+      style={{ color: format?.color ?? themeColor, fontSize: format?.fontSize, fontWeight: format?.bold ? 700 : undefined, fontStyle: format?.italic ? 'italic' : undefined, textDecoration: [format?.underline && 'underline', format?.strike && 'line-through'].filter(Boolean).join(' ') || undefined }}
       value={draftValue}
       placeholder="空白节点"
       onChange={(event) => {

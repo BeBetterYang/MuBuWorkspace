@@ -6,6 +6,7 @@ export interface OutlineDocument {
   updatedAt: number
   mindMapLayout?: MindMapLayoutState
   mindMapLayouts?: Record<string, MindMapLayoutState>
+  mindMapViewports?: Record<string, MindMapViewport>
   mindMapAppearance?: MindMapAppearance
   root: OutlineNode
 }
@@ -13,6 +14,12 @@ export interface OutlineDocument {
 export interface MindMapAppearance {
   themeId?: string
   backgroundColor?: string
+}
+
+export interface MindMapViewport {
+  x: number
+  y: number
+  zoom: number
 }
 
 export interface MindMapLayoutPosition {

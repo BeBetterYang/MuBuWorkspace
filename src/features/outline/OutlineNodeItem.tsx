@@ -29,6 +29,7 @@ interface OutlineNodeItemProps {
   onBatchIndent?: () => boolean
   onBatchOutdent?: () => boolean
   onNodeContextMenu?: (event: React.MouseEvent, nodeId: string) => void
+  themeText?: string
 }
 
 export const OutlineNodeItem: React.FC<OutlineNodeItemProps> = ({
@@ -47,6 +48,7 @@ export const OutlineNodeItem: React.FC<OutlineNodeItemProps> = ({
   onBatchIndent,
   onBatchOutdent,
   onNodeContextMenu,
+  themeText,
 }) => {
   const selectNode = useDocumentStore((s) => s.selectNode)
   const updateNodeText = useDocumentStore((s) => s.updateNodeText)
@@ -267,7 +269,7 @@ export const OutlineNodeItem: React.FC<OutlineNodeItemProps> = ({
             onCompositionEnd={() => setIsComposing(false)}
             className="w-full bg-transparent text-sm font-medium text-zinc-900 outline-none border-none p-0 focus:ring-0 placeholder-zinc-400"
             style={{
-              color: node.format?.color,
+              color: node.format?.color ?? themeText,
               fontSize: node.format?.fontSize,
               fontWeight: node.format?.bold ? 700 : undefined,
               fontStyle: node.format?.italic ? 'italic' : undefined,
@@ -276,7 +278,7 @@ export const OutlineNodeItem: React.FC<OutlineNodeItemProps> = ({
             placeholder="输入编织内容..."
           />
         ) : (
-          <div className={`${node.format?.code ? 'rounded bg-zinc-100 px-1.5 py-1 font-mono' : ''} ${node.format?.quote ? 'border-l-2 border-indigo-400 pl-2' : ''}`} style={{ color: node.format?.color, fontSize: node.format?.fontSize, fontWeight: node.format?.bold ? 700 : undefined, fontStyle: node.format?.italic ? 'italic' : undefined, textDecoration: [node.format?.underline && 'underline', node.format?.strike && 'line-through'].filter(Boolean).join(' ') || undefined }}>
+          <div className={`${node.format?.code ? 'rounded bg-zinc-100 px-1.5 py-1 font-mono' : ''} ${node.format?.quote ? 'border-l-2 border-indigo-400 pl-2' : ''}`} style={{ color: node.format?.color ?? themeText, fontSize: node.format?.fontSize, fontWeight: node.format?.bold ? 700 : undefined, fontStyle: node.format?.italic ? 'italic' : undefined, textDecoration: [node.format?.underline && 'underline', node.format?.strike && 'line-through'].filter(Boolean).join(' ') || undefined }}>
             {node.format?.link ? <a href={node.format.link} target="_blank" rel="noreferrer" className="underline decoration-zinc-400 underline-offset-2" onClick={(event) => event.stopPropagation()}><OutlineNodeTextContent text={node.text} isAgentDeleting={isAgentDeleting} isAgentMoving={isAgentMoving} agentTextPreview={agentTextPreview} /></a> :
             <OutlineNodeTextContent text={node.text} isAgentDeleting={isAgentDeleting} isAgentMoving={isAgentMoving} agentTextPreview={agentTextPreview} />
             }

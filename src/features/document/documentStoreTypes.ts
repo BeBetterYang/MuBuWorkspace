@@ -6,6 +6,7 @@ import type {
   MindMapLayoutPosition,
   MindMapLayoutState,
   MindMapAppearance,
+  MindMapViewport,
   NodeTextFormat,
   NodeSummary,
   OutlineDocument,
@@ -87,6 +88,7 @@ export interface DocumentState {
   moveNodeToSibling: (sourceNodeId: string, targetNodeId: string) => void
   moveNodeToParent: (sourceNodeId: string, targetParentNodeId: string, targetIndex: number) => void
   commitMindMapLayout: (layout: MindMapLayoutState | Record<string, MindMapLayoutPosition>) => void
+  commitMindMapViewport: (strategy: string, viewport: MindMapViewport) => void
   updateMindMapAppearance: (appearance: MindMapAppearance) => void
   insertNode: (nodeId: string, text?: string) => string | null
   insertSiblingNode: (nodeId: string, text?: string) => string | null

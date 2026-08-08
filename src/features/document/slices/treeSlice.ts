@@ -18,6 +18,7 @@ type TreeActions = Pick<
   | 'moveNodeToSibling'
   | 'moveNodeToParent'
   | 'commitMindMapLayout'
+  | 'commitMindMapViewport'
   | 'updateMindMapAppearance'
   | 'insertNode'
   | 'insertSiblingNode'

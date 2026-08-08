@@ -43,7 +43,7 @@ export interface MindMapLayoutHandlers {
 }
 
 interface UseMindMapLayoutComputationParams {
-  currentDoc: { root: OutlineNode; mindMapLayout?: MindMapLayoutState; mindMapAppearance?: MindMapAppearance } | null
+  currentDoc: { root: OutlineNode; mindMapLayout?: MindMapLayoutState; mindMapLayouts?: Record<string, MindMapLayoutState>; mindMapAppearance?: MindMapAppearance } | null
   pendingAgentPlan: Parameters<typeof createAgentDocumentPreview>[0]
   collapsedNodeIds: Set<string>
   validFocusRootNodeId: string | null
@@ -78,6 +78,12 @@ function findDeepestVisibleLeaf(node: OutlineNode, visibleNodeIds: Set<string>):
     const withDepth = { node: candidate.node, depth: candidate.depth + 1 }
     return withDepth.depth >= deepest.depth ? withDepth : deepest
   }, { node, depth: 0 })
+}
+
+function collectVisibleTerminalNodes(node: OutlineNode, visibleNodeIds: Set<string>): OutlineNode[] {
+  const visibleChildren = node.children.filter((child) => visibleNodeIds.has(child.id))
+  if (visibleChildren.length === 0) return [node]
+  return visibleChildren.flatMap((child) => collectVisibleTerminalNodes(child, visibleNodeIds))
 }
 
 function buildSummaryTargets(root: OutlineNode, visibleNodeIds: Set<string>) {
@@ -127,25 +133,31 @@ export function useMindMapLayoutComputation({
     () => createAgentDocumentPreview(pendingAgentPlan),
     [pendingAgentPlan],
   )
+  const layoutDocument = React.useMemo(() => currentDoc ? {
+    root: currentDoc.root,
+    mindMapLayout: currentDoc.mindMapLayout,
+    mindMapLayouts: currentDoc.mindMapLayouts,
+    mindMapAppearance: currentDoc.mindMapAppearance,
+  } : null, [currentDoc?.mindMapAppearance, currentDoc?.mindMapLayout, currentDoc?.mindMapLayouts, currentDoc?.root])
   const mindMapTheme = resolveMindMapTheme(currentDoc?.mindMapAppearance?.themeId)
   const themeLineColor = mindMapTheme.text
 
   const previewLayoutRoot = React.useMemo(() => {
-    const root = graphRootNode ?? currentDoc?.root
+    const root = graphRootNode ?? layoutDocument?.root
     if (!root || exportClean || agentPreview.insertionsByParentId.size === 0) return root ?? null
 
     // Agent 插入预览需要临时混入待插入节点，让布局和连线能按最终树形提前展示。
     return createAgentInsertionPreviewRoot(root, agentPreview.insertionsByParentId)
-  }, [agentPreview.insertionsByParentId, currentDoc?.root, exportClean, graphRootNode])
+  }, [agentPreview.insertionsByParentId, exportClean, graphRootNode, layoutDocument?.root])
 
   React.useEffect(() => {
-    if (!currentDoc) return
+    if (!layoutDocument) return
 
     const activeStrategy = experimentalLayoutEnabled ? layoutStrategy : DEFAULT_MIND_MAP_LAYOUT_STRATEGY
-    const layoutRoot = previewLayoutRoot ?? graphRootNode ?? currentDoc.root
+    const layoutRoot = previewLayoutRoot ?? graphRootNode ?? layoutDocument.root
     const rawGraph = outlineToGraph(layoutRoot, collapsedNodeIds, undefined)
     const nodeSizes = buildMindMapNodeSizes(layoutRoot, measuredNodeSizes)
-    const summaryTargets = buildSummaryTargets(currentDoc.root, visibleNodeIds)
+    const summaryTargets = buildSummaryTargets(layoutDocument.root, visibleNodeIds)
     // 先生成含预览节点的图，再统一交给布局引擎，避免预览节点绕过折叠、聚焦和搜索状态。
     const graphWithAgentInsertions = attachAgentInsertionPreviewGraphData(
       rawGraph,
@@ -156,7 +168,7 @@ export function useMindMapLayoutComputation({
       graphData: {
         ...graphWithAgentInsertions,
         nodes: graphWithAgentInsertions.nodes.map((node) => {
-          const sourceNode = findNodeById(currentDoc.root, node.id)
+          const sourceNode = findNodeById(layoutDocument.root, node.id)
           const previewInsertion = getAgentInsertionFromGraphNode(node)
           const data: MindMapNodeData = {
             label: previewInsertion?.node.text ?? sourceNode?.text ?? '',
@@ -208,7 +220,7 @@ export function useMindMapLayoutComputation({
       collapsedNodeIds,
       visibleNodeIds: new Set(graphWithAgentInsertions.nodes.map((node) => node.id)),
       strategy: activeStrategy,
-      persistedLayout: getMindMapLayoutForStrategy(currentDoc, activeStrategy),
+      persistedLayout: getMindMapLayoutForStrategy(layoutDocument, activeStrategy),
       nodeSizes,
       mode: validFocusRootNodeId || searchQuery || agentPreview.insertionsByParentId.size > 0 ? 'transient' : 'persistent',
     }
@@ -235,22 +247,34 @@ export function useMindMapLayoutComputation({
     }
 
     const layoutNodeById = new Map<string, Node<MindMapNodeData>>((layouted.nodes as Node<MindMapNodeData>[]).map((node) => [node.id, node]))
+    const layoutRootNode = layoutNodeById.get(layoutDocument.root.id)
     const nodesWithSummaryPlacement = layouted.nodes.map((node) => {
       const summary = node.data.summary
       if (!summary) return node
-      const coveredNodes = summary.nodeIds.map((id: string) => layoutNodeById.get(id)).filter((item: Node<MindMapNodeData> | undefined): item is Node<MindMapNodeData> => Boolean(item))
+      const coveredNodes = summary.nodeIds
+        .flatMap((id: string) => {
+          const sourceNode = findNodeById(layoutDocument.root, id)
+          return sourceNode ? collectVisibleTerminalNodes(sourceNode, visibleNodeIds) : []
+        })
+        .map((covered: OutlineNode) => layoutNodeById.get(covered.id))
+        .filter((item: Node<MindMapNodeData> | undefined): item is Node<MindMapNodeData> => Boolean(item))
       const centerY = (covered: Node<MindMapNodeData>) => covered.position.y + (nodeSizes[covered.id]?.height ?? 36) / 2
       const coveredCenters = (coveredNodes.length ? coveredNodes : [node]).map(centerY)
       const firstCenter = Math.min(...coveredCenters)
       const lastCenter = Math.max(...coveredCenters)
       const midpoint = (firstCenter + lastCenter) / 2
       const summaryHeight = coveredNodes.length <= 1 ? 44 : Math.max(44, lastCenter - firstCenter)
+      const nodeCenterX = node.position.x + (nodeSizes[node.id]?.width ?? 120) / 2
+      const rootCenterX = layoutRootNode
+        ? layoutRootNode.position.x + (nodeSizes[layoutRootNode.id]?.width ?? 120) / 2
+        : nodeCenterX
       return {
         ...node,
         data: {
           ...node.data,
           summaryTop: midpoint - summaryHeight / 2 - node.position.y,
           summaryHeight,
+          summarySide: nodeCenterX < rootCenterX ? 'left' : 'right',
         },
       }
     })
@@ -267,7 +291,7 @@ export function useMindMapLayoutComputation({
     agentPreview,
     collapsedBranchSides,
     collapsedNodeIds,
-    currentDoc,
+    layoutDocument,
     depthByNodeId,
     editingNodeId,
     experimentalLayoutEnabled,

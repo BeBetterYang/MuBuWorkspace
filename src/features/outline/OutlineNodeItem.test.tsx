@@ -77,6 +77,23 @@ describe('OutlineNodeItem', () => {
     expect(toolbar).not.toHaveClass('overflow-hidden')
   })
 
+  it('applies the mind map theme to the outline background and both text states', () => {
+    const doc = createDocument()
+    useDocumentStore.setState({
+      currentDoc: {
+        ...doc,
+        mindMapAppearance: { themeId: 'breeze', backgroundColor: '#DBEAFE' },
+      },
+    })
+    render(<OutlineEditor />)
+
+    expect(screen.getByDisplayValue(doc.title).closest('.overflow-y-auto')).toHaveStyle({ backgroundColor: '#DBEAFE' })
+    expect(screen.getByDisplayValue(doc.title)).toHaveStyle({ color: '#24452B' })
+    expect(screen.getByDisplayValue(doc.root.children[1].text)).toHaveStyle({ color: '#24452B' })
+    const displayText = screen.getByText(doc.root.children[0].text)
+    expect(displayText.parentElement?.parentElement).toHaveStyle({ color: '#24452B' })
+  })
+
   it('opens the shared node context menu from an outline node', () => {
     render(<OutlineEditor />)
 

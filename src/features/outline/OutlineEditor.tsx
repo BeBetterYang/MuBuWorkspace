@@ -10,6 +10,7 @@ import { formatDeleteConfirmation } from '../document/nodeActions'
 import { createAgentDocumentPreview } from '../agent/agentChangePlan'
 import { useAgentStore } from '../agent/agentStore'
 import { NodeFormattingToolbar } from '../document/NodeFormattingToolbar'
+import { resolveMindMapTheme } from '../mindmap/mindMapThemes'
 
 export const OutlineEditor: React.FC = () => {
   const currentDoc = useDocumentStore((s) => s.currentDoc)
@@ -130,6 +131,9 @@ export const OutlineEditor: React.FC = () => {
     )
   }
 
+  const outlineTheme = resolveMindMapTheme(currentDoc.mindMapAppearance?.themeId)
+  const outlineBackground = currentDoc.mindMapAppearance?.backgroundColor ?? '#FFFFFF'
+
   const handleEmptyClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       closeContextMenu()
@@ -144,7 +148,8 @@ export const OutlineEditor: React.FC = () => {
 
   return (
     <div
-      className="relative flex h-full flex-col cursor-text select-text overflow-y-auto bg-white px-12 py-8 dark:bg-[#121214]"
+      className="relative flex h-full flex-col cursor-text select-text overflow-y-auto px-12 py-8"
+      style={{ backgroundColor: outlineBackground, color: outlineTheme.text }}
       onClick={handleEmptyClick}
     >
       {/* Title Header: Stitched Fabric Tag look */}
@@ -155,7 +160,8 @@ export const OutlineEditor: React.FC = () => {
           onFocus={() => beginTextEditSession(currentDoc.root.id)}
           onBlur={() => commitTextEditSession(currentDoc.root.id)}
           onChange={(e) => updateNodeText(currentDoc.root.id, e.target.value)}
-          className="w-full bg-transparent text-2xl font-bold text-zinc-900 dark:text-zinc-100 outline-none border-none p-0 focus:ring-0 placeholder-zinc-300 dark:placeholder-zinc-700 tracking-wide font-sans"
+          className="w-full bg-transparent text-2xl font-bold outline-none border-none p-0 focus:ring-0 placeholder-zinc-400 tracking-wide font-sans"
+          style={{ color: currentDoc.root.format?.color ?? outlineTheme.text }}
           placeholder="未命名织物"
         />
       </div>
@@ -200,6 +206,7 @@ export const OutlineEditor: React.FC = () => {
             onBatchIndent={runBatchIndent}
             onBatchOutdent={runBatchOutdent}
             onNodeContextMenu={(event, nodeId) => openContextMenu(nodeId, event.clientX, event.clientY)}
+            themeText={outlineTheme.text}
           />
         ))}
 

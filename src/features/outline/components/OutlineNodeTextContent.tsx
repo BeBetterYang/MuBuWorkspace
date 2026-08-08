@@ -22,7 +22,7 @@ export const OutlineNodeTextContent: React.FC<OutlineNodeTextContentProps> = ({
             ? 'text-rose-700 line-through'
             : agentTextPreview
               ? 'text-zinc-400 line-through'
-              : 'text-zinc-800'
+              : 'text-current'
         }`}
       >
         {text ? (

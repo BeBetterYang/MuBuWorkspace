@@ -33,6 +33,7 @@ interface MindMapCanvasProps {
   onNodeDragStop: NodeDragHandler
   onKeyDown: React.KeyboardEventHandler
   onInit: (instance: ReactFlowInstance) => void
+  onViewportChange: (viewport: { x: number; y: number; zoom: number }) => void
 }
 
 export const MindMapCanvas = React.forwardRef<HTMLDivElement, MindMapCanvasProps>(({
@@ -53,6 +54,7 @@ export const MindMapCanvas = React.forwardRef<HTMLDivElement, MindMapCanvasProps
   onNodeDragStop,
   onKeyDown,
   onInit,
+  onViewportChange,
 }, ref) => {
   const flowInstanceRef = React.useRef<ReactFlowInstance | null>(null)
   const [zoom, setZoom] = React.useState(1)
@@ -81,6 +83,7 @@ export const MindMapCanvas = React.forwardRef<HTMLDivElement, MindMapCanvasProps
         onKeyDown={onKeyDown}
         onInit={handleInit}
         onMove={(_event, viewport) => setZoom(viewport.zoom)}
+        onMoveEnd={(_event, viewport) => onViewportChange(viewport)}
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
         fitViewOptions={{ padding: 0.25, maxZoom: 1 }}
         minZoom={0.1}

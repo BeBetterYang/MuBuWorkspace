@@ -50,6 +50,7 @@ export const MindMapView: React.FC = () => {
   const beginTextEditSession = useDocumentStore((s) => s.beginTextEditSession)
   const commitTextEditSession = useDocumentStore((s) => s.commitTextEditSession)
   const commitMindMapLayout = useDocumentStore((s) => s.commitMindMapLayout)
+  const commitMindMapViewport = useDocumentStore((s) => s.commitMindMapViewport)
   const updateMindMapAppearance = useDocumentStore((s) => s.updateMindMapAppearance)
   const moveNodeToParent = useDocumentStore((s) => s.moveNodeToParent)
   const experimentalLayoutEnabled = true
@@ -68,6 +69,7 @@ export const MindMapView: React.FC = () => {
   const previousEditingNodeIdRef = React.useRef<string | null>(null)
   const readyLayoutKeyRef = React.useRef<string | null>(null)
   const [canvasReady, setCanvasReady] = React.useState(false)
+  const [flowReady, setFlowReady] = React.useState(false)
 
   React.useEffect(() => {
     const selectSummary = (event: Event) => {
@@ -371,19 +373,26 @@ export const MindMapView: React.FC = () => {
 
   React.useEffect(() => {
     if (!currentDoc) return
-    const rootNode = nodes.find((node) => node.id === currentDoc.root.id)
-    if (!rootNode || !flowInstanceRef.current) return
+    const focusNode = nodes.find((node) => node.id === currentDoc.root.children[0]?.id)
+      ?? nodes.find((node) => node.id === currentDoc.root.id)
+    if (!focusNode || !flowInstanceRef.current) return
     const viewKey = `${currentDoc.id}:${layoutStrategy}`
     if (centeredViewKeyRef.current === viewKey) return
-    centeredViewKeyRef.current = viewKey
+    const savedViewport = currentDoc.mindMapViewports?.[layoutStrategy]
+    if (savedViewport) {
+      centeredViewKeyRef.current = viewKey
+      void flowInstanceRef.current.setViewport?.(savedViewport, { duration: 0 })
+      return
+    }
     let frame = 0
     const timer = window.setTimeout(() => {
       frame = window.requestAnimationFrame(() => {
-        const width = rootNode.width ?? 120
-        const height = rootNode.height ?? 36
+        centeredViewKeyRef.current = viewKey
+        const width = focusNode.width ?? 120
+        const height = focusNode.height ?? 36
         void flowInstanceRef.current?.setCenter?.(
-          rootNode.position.x + width / 2,
-          rootNode.position.y + height / 2,
+          focusNode.position.x + width / 2,
+          focusNode.position.y + height / 2,
           { zoom: 1, duration: 180 },
         )
       })
@@ -392,7 +401,12 @@ export const MindMapView: React.FC = () => {
       window.clearTimeout(timer)
       if (frame) window.cancelAnimationFrame(frame)
     }
-  }, [currentDoc, layoutStrategy, nodes])
+  }, [currentDoc, flowReady, layoutStrategy, nodes])
+
+  const handleFlowInit = React.useCallback((instance: ReactFlowInstance) => {
+    canvasHandlers.handleInit(instance)
+    setFlowReady(true)
+  }, [canvasHandlers.handleInit])
 
   const forcePreviewActive = Boolean(forcePreview)
   const handleLayoutStrategyChange = React.useCallback((strategy: Parameters<typeof handleStrategyChange>[0]) => {
@@ -449,7 +463,8 @@ export const MindMapView: React.FC = () => {
         onNodeDragStart={handleNodeDragStart}
         onNodeDragStop={handleNodeDragStop}
         onKeyDown={handleKeyDown}
-        onInit={canvasHandlers.handleInit}
+        onInit={handleFlowInit}
+        onViewportChange={(viewport) => commitMindMapViewport(layoutStrategy, viewport)}
       />
       <MindMapOverlays
         exportClean={exportClean}

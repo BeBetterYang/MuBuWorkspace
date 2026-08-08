@@ -50,7 +50,7 @@ function getSelectedTextRange(nodeId: string): { start: number; end: number } | 
   return { start: prefix.toString().length, end: prefix.toString().length + range.toString().length }
 }
 
-type ToolbarPanel = 'type' | 'marker' | 'textColor' | 'summary' | 'table' | 'link' | 'list' | 'more' | null
+type ToolbarPanel = 'type' | 'marker' | 'textColor' | 'summary' | 'link' | 'list' | 'more' | null
 
 export const NodeFormattingToolbar: React.FC<{
   nodeId: string
@@ -148,12 +148,6 @@ export const NodeFormattingToolbar: React.FC<{
     }
     input.click()
   }
-  const updateTableCell = (row: number, column: number, value: string) => {
-    const table = (format.table ?? [['', ''], ['', '']]).map((cells) => [...cells])
-    table[row][column] = value
-    updateTargetFormat({ table })
-  }
-
   return (
     <div className="fixed bottom-7 left-1/2 z-[80] -translate-x-1/2" onMouseDown={(event) => event.stopPropagation()}>
       {panel && (
@@ -173,7 +167,6 @@ export const NodeFormattingToolbar: React.FC<{
           </div>}
           {panel === 'summary' && <div className="w-72 space-y-2"><div className="text-xs text-zinc-500">概要将以括弧覆盖所选同级节点，并在右侧生成摘要节点。</div><input autoFocus aria-label="概要内容" value={summaryOwner?.summary?.text ?? ''} placeholder="输入概要" className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-indigo-400" onChange={(event) => updateSummary(createdSummaryOwnerId, event.target.value ? { text: event.target.value, nodeIds: orderedSummaryNodeIds } : undefined)} />{summaryOwner?.summary && <button type="button" className="w-full rounded-md py-1.5 text-xs text-rose-600 hover:bg-rose-50" onClick={() => updateSummary(createdSummaryOwnerId, undefined)}>删除概要</button>}</div>}
           {panel === 'link' && <input autoFocus aria-label="节点链接" value={format.link ?? ''} placeholder="粘贴链接地址" className="w-72 rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-indigo-400" onChange={(event) => updateTargetFormat({ link: event.target.value || undefined })} />}
-          {panel === 'table' && <div className="space-y-2"><div className="grid grid-cols-2 overflow-hidden rounded-md border border-zinc-200">{(format.table ?? [['', ''], ['', '']]).flatMap((row, rowIndex) => row.map((cell, columnIndex) => <input key={`${rowIndex}-${columnIndex}`} value={cell} className="w-28 border-b border-r border-zinc-200 px-2 py-1.5 text-xs outline-none focus:bg-indigo-50" onChange={(event) => updateTableCell(rowIndex, columnIndex, event.target.value)} />))}</div><button type="button" className="w-full rounded-md px-2 py-1.5 text-xs text-rose-600 hover:bg-rose-50" onClick={() => updateTargetFormat({ table: undefined })}>删除表格</button></div>}
           {panel === 'list' && <div className="flex gap-1"><button type="button" className="rounded-lg px-3 py-2 text-sm hover:bg-zinc-100" onClick={() => updateAll({ listStyle: undefined })}><Menu size={15} /></button><button type="button" className="rounded-lg px-3 py-2 text-sm hover:bg-zinc-100" onClick={() => updateAll({ listStyle: 'bullet' })}><List size={15} /></button><button type="button" className="rounded-lg px-3 py-2 text-sm hover:bg-zinc-100" onClick={() => updateAll({ listStyle: 'number' })}><ListOrdered size={15} /></button></div>}
           {panel === 'more' && isSummaryMode && <div className="grid min-w-52 gap-0.5 text-sm"><button type="button" className="rounded-md px-3 py-2 text-left text-rose-600 hover:bg-rose-50" onClick={() => summaryOwnerId && updateSummary(summaryOwnerId, undefined)}>删除概要节点</button></div>}
           {panel === 'more' && !isSummaryMode && <div className="grid min-w-52 gap-0.5 text-sm">
@@ -193,7 +186,7 @@ export const NodeFormattingToolbar: React.FC<{
         <button type="button" title="待办" aria-label="待办" className={button(node.checked !== undefined)} onClick={toggleTodo}><CheckSquare size={18} /></button>
         {!isSummaryMode && <button type="button" title="概要" aria-label="概要" disabled={!canAddSummary} className={`${button(Boolean(summaryOwner?.summary))} disabled:opacity-30`} onClick={(event) => { if (summaryOwner?.summary) updateSummary(createdSummaryOwnerId, { ...summaryOwner.summary, nodeIds: orderedSummaryNodeIds }); togglePanel('summary', event) }}><Braces size={18} /></button>}
         <button type="button" title="编辑描述" aria-label="编辑描述" className={button(Boolean(node.note))} onClick={requestNoteEditing}><MessageSquareMore size={18} /></button>
-        <button type="button" title="插入表格" aria-label="插入表格" className={button(Boolean(format.table))} onClick={(event) => { if (!format.table) updateTargetFormat({ table: [['', ''], ['', '']] }); togglePanel('table', event) }}><Table2 size={18} /></button>
+        <button type="button" title="插入表格" aria-label="插入表格" className={button(Boolean(format.table))} onClick={() => { setPanel(null); if (!format.table) { updateTargetFormat({ table: [['', ''], ['', '']] }); return } if (window.confirm('确定删除当前节点中的表格吗？')) updateTargetFormat({ table: undefined }) }}><Table2 size={18} /></button>
         <button type="button" title="列表样式" aria-label="列表样式" className={button(Boolean(format.listStyle))} onClick={(event) => togglePanel('list', event)}><List size={18} /></button>
         <button type="button" title="插入图片" aria-label="插入图片" className={button(Boolean(format.imageDataUrls?.length || format.imageDataUrl))} onClick={openImagePicker}><ImagePlus size={18} /></button>
         <button type="button" title="链接" aria-label="链接" className={button(Boolean(format.link))} onClick={(event) => togglePanel('link', event)}><Link2 size={18} /></button>

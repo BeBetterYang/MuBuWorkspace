@@ -289,6 +289,20 @@ describe('documentStore', () => {
     expect(useDocumentStore.getState().currentDoc?.mindMapLayout?.strategy).toBe('free-canvas')
   })
 
+  it('stores independent mind map viewports without adding an undo step', async () => {
+    await loadFixtureDoc()
+
+    useDocumentStore.getState().commitMindMapViewport('classic-dagre', { x: 10, y: 20, zoom: 1 })
+    useDocumentStore.getState().commitMindMapViewport('balanced-mindmap', { x: 40, y: 60, zoom: 0.75 })
+
+    expect(useDocumentStore.getState().currentDoc?.mindMapViewports).toEqual({
+      'classic-dagre': { x: 10, y: 20, zoom: 1 },
+      'balanced-mindmap': { x: 40, y: 60, zoom: 0.75 },
+    })
+    expect(useDocumentStore.getState().isDirty).toBe(true)
+    expect(useDocumentStore.getState().canUndo).toBe(false)
+  })
+
   it('saves mind map layout and upgrades the document version', async () => {
     const doc = createDocument()
     useDocumentStore.setState({

@@ -25,6 +25,7 @@ export interface MindMapNodeData {
   summarySelected?: boolean
   summaryTop?: number
   summaryHeight?: number
+  summarySide?: 'left' | 'right'
   checked?: boolean
   exportClean?: boolean
   dropState?: 'before' | 'child' | 'after' | null
@@ -207,11 +208,13 @@ export const MindMapNode: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, se
 
       <div className="flex items-center">
         <div className="min-w-0 flex-1">
+          <div>
           {data.editing ? (
             <MindMapInlineEditor
               nodeId={id}
               value={data.label}
               format={data.format}
+              themeColor={themeText}
               onChange={(value) => data.onTextChange(id, value)}
               onCommit={() => data.onCommitEdit(id)}
               onCancel={data.onCancelEdit}
@@ -222,8 +225,7 @@ export const MindMapNode: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, se
               onMoveDown={() => data.onMoveDown(id)}
             />
           ) : (
-            <div>
-              <div className="flex items-start gap-1.5">
+              <div className="flex items-start gap-1.5" onClick={(event) => { event.stopPropagation(); const additive = event.ctrlKey || event.metaKey; data.onSelectNode(id, additive); if (!additive) requestEditing() }}>
                 {data.checked !== undefined && !data.exportClean && <button type="button" aria-label={data.checked ? '标记为未完成' : '标记为已完成'} className={`nodrag nopan mt-[3px] inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[3px] border text-[9px] ${data.checked ? 'border-indigo-500 bg-indigo-500 text-white' : 'border-zinc-400 bg-white'}`} onClick={(event) => { event.stopPropagation(); setNodeChecked(id, !data.checked) }}>{data.checked ? '✓' : ''}</button>}
                 <div data-mindmap-text-node-id={id} style={{ color: data.checked ? '#a1a1aa' : data.format?.color ?? themeText, fontSize: data.format?.fontSize, fontWeight: data.format?.bold ? 700 : undefined, fontStyle: data.format?.italic ? 'italic' : undefined, textDecoration: [data.format?.underline && 'underline', (data.format?.strike || data.checked) && 'line-through'].filter(Boolean).join(' ') || undefined }} className={`whitespace-pre-wrap break-words text-sm leading-[1.45] ${data.format?.code ? 'rounded bg-zinc-100 px-1.5 py-1 font-mono' : ''} ${
                 isAgentDeleting
@@ -245,6 +247,7 @@ export const MindMapNode: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, se
                 )}
                 </div>
               </div>
+          )}
               {agentTextPreview && (
                 <div className="whitespace-pre-wrap break-words text-xs font-semibold leading-relaxed text-emerald-700">
                   {agentTextPreview}
@@ -278,7 +281,6 @@ export const MindMapNode: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, se
                 <div className="mt-1 text-[10px] font-medium text-amber-800/55">含标签</div>
               )}
             </div>
-          )}
         </div>
 
       </div>
@@ -314,7 +316,7 @@ export const MindMapNode: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, se
         </button>
       )}
 
-      {!data.exportClean && data.summary && data.summaryOwnerId && <MindMapSummary ownerId={data.summaryOwnerId} summary={data.summary} selected={Boolean(data.summarySelected)} top={data.summaryTop} height={data.summaryHeight} zoom={zoom} theme={data.theme} />}
+      {!data.exportClean && data.summary && data.summaryOwnerId && <MindMapSummary ownerId={data.summaryOwnerId} summary={data.summary} selected={Boolean(data.summarySelected)} top={data.summaryTop} height={data.summaryHeight} side={data.summarySide} zoom={zoom} theme={data.theme} />}
 
       {previewImage && createPortal(<div className="nodrag nopan fixed inset-0 z-[200] flex items-center justify-center bg-black/75 p-8" onClick={(event) => { event.stopPropagation(); closeImagePreview() }}><button type="button" aria-label="关闭大图" className="absolute right-6 top-6 rounded-full bg-white/15 p-2 text-white transition hover:bg-white/25" onClick={(event) => { event.stopPropagation(); closeImagePreview() }}><X size={22} /></button><img src={previewImage} alt="图片大图预览" className="max-h-full max-w-full object-contain" onClick={(event) => event.stopPropagation()} /></div>, document.body)}
     </div>
@@ -323,7 +325,7 @@ export const MindMapNode: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, se
 
 const ImageMenuButton: React.FC<{ icon: React.ReactNode; label: string; danger?: boolean; onClick: () => void }> = ({ icon, label, danger, onClick }) => <button type="button" className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left hover:bg-zinc-100 ${danger ? 'text-rose-600' : ''}`} onClick={(event) => { event.stopPropagation(); onClick() }}>{icon}{label}</button>
 
-const MindMapSummary: React.FC<{ ownerId: string; summary: NodeSummary; selected: boolean; top?: number; height?: number; zoom: number; theme?: MindMapTheme }> = ({ ownerId, summary, selected, top = -4, height = 44, zoom, theme }) => {
+const MindMapSummary: React.FC<{ ownerId: string; summary: NodeSummary; selected: boolean; top?: number; height?: number; side?: 'left' | 'right'; zoom: number; theme?: MindMapTheme }> = ({ ownerId, summary, selected, top = -4, height = 44, side = 'right', zoom, theme }) => {
   const updateNodeSummary = useDocumentStore((state) => state.updateNodeSummary)
   const [editing, setEditing] = React.useState(false)
   const [draft, setDraft] = React.useState(summary.text)
@@ -362,9 +364,10 @@ const MindMapSummary: React.FC<{ ownerId: string; summary: NodeSummary; selected
     event.stopPropagation()
     window.dispatchEvent(new CustomEvent('siwei:select-summary', { detail: { ownerId } }))
   }
-  return <div data-testid={`mindmap-summary-${ownerId}`} className="pointer-events-none absolute left-full z-20 ml-6" style={{ top, height: Math.max(1, height), width: 280 }}>
-    <Braces aria-hidden="true" viewBox="16 3 5 18" preserveAspectRatio="none" className="mindmap-summary-brace absolute left-0 top-0 h-full w-3" style={{ color: theme?.text, stroke: theme?.text }} strokeWidth={1.25} />
-    <div role="button" tabIndex={0} aria-label={`概要节点 ${summary.text}`} className={`nodrag nopan pointer-events-auto absolute left-5 top-1/2 w-max min-w-16 max-w-[650px] -translate-y-1/2 rounded-lg border-[1.5px] bg-transparent px-3 py-2 text-left shadow-sm transition ${selected ? 'ring-2 ring-indigo-100' : 'hover:opacity-80'}`} style={{ backgroundColor: summary.format?.backgroundColor ?? 'transparent', borderColor: theme?.text, color: summary.format?.color ?? theme?.text }} onClick={selectSummary} onDoubleClick={(event) => { selectSummary(event); setEditing(true) }}>
+  const isLeft = side === 'left'
+  return <div data-testid={`mindmap-summary-${ownerId}`} data-summary-side={side} className={`pointer-events-none absolute z-20 ${isLeft ? 'right-full mr-6' : 'left-full ml-6'}`} style={{ top, height: Math.max(1, height), width: 280 }}>
+    <Braces aria-hidden="true" viewBox={isLeft ? '3 3 5 18' : '16 3 5 18'} preserveAspectRatio="none" className={`mindmap-summary-brace absolute top-0 h-full w-3 ${isLeft ? 'right-0' : 'left-0'}`} style={{ color: theme?.text, stroke: theme?.text }} strokeWidth={1.25} />
+    <div role="button" tabIndex={0} aria-label={`概要节点 ${summary.text}`} className={`nodrag nopan pointer-events-auto absolute top-1/2 w-max min-w-16 max-w-[650px] -translate-y-1/2 rounded-lg border-[1.5px] bg-transparent px-3 py-2 text-left shadow-sm transition ${isLeft ? 'right-5' : 'left-5'} ${selected ? 'ring-2 ring-indigo-100' : 'hover:opacity-80'}`} style={{ backgroundColor: summary.format?.backgroundColor ?? 'transparent', borderColor: theme?.text, color: summary.format?.color ?? theme?.text }} onClick={selectSummary} onDoubleClick={(event) => { selectSummary(event); setEditing(true) }}>
       {editing ? <textarea ref={inputRef} data-mindmap-editor-node-id={`summary:${ownerId}`} aria-label="编辑概要节点" value={draft} rows={1} className="block min-h-5 w-full resize-none overflow-hidden border-0 bg-transparent p-0 text-sm leading-snug outline-none [field-sizing:content]" onChange={(event) => setDraft(event.target.value)} onBlur={commit} onClick={(event) => event.stopPropagation()} onKeyDown={(event) => { event.stopPropagation(); if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); commit() } if (event.key === 'Escape') { event.preventDefault(); setDraft(summary.text); setEditing(false) } }} /> : <div className="flex items-start gap-1.5">
         {summary.checked !== undefined && <button type="button" aria-label={summary.checked ? '概要标记为未完成' : '概要标记为已完成'} className={`mt-[3px] inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[3px] border text-[9px] ${summary.checked ? 'border-indigo-500 bg-indigo-500 text-white' : 'border-zinc-400 bg-white'}`} onClick={(event) => { event.stopPropagation(); updateSummary({ checked: !summary.checked }) }}>{summary.checked ? '✓' : ''}</button>}
         <div data-mindmap-text-node-id={`summary:${ownerId}`} className="whitespace-pre-wrap break-words text-sm leading-[1.45]" style={{ color: summary.checked ? '#a1a1aa' : summary.format?.color, fontSize: summary.format?.fontSize, fontWeight: summary.format?.bold ? 700 : undefined, fontStyle: summary.format?.italic ? 'italic' : undefined, textDecoration: [summary.format?.underline && 'underline', (summary.format?.strike || summary.checked) && 'line-through'].filter(Boolean).join(' ') || undefined }}>{summary.format?.link ? <a href={summary.format.link} target="_blank" rel="noreferrer" className="underline underline-offset-2" onClick={(event) => event.stopPropagation()}>{renderFormattedText(summary.text, summary.format)}</a> : renderFormattedText(summary.text, summary.format)}</div>
