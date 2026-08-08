@@ -149,7 +149,6 @@
 .react-flow__edge-path {
   transition: stroke 0.15s ease;
   stroke-dasharray: none;
-  stroke: #18181B !important;
   stroke-width: 1.25px !important;
 }
 
@@ -158,11 +157,7 @@
 }
 
 .react-flow__edge:hover .react-flow__edge-path {
-  stroke: #52525B !important; /* darker zinc on hover */
   stroke-width: 2px !important;
-}
-.dark .react-flow__edge:hover .react-flow__edge-path {
-  stroke: #D4D4D8 !important;
 }
 
 .siwei-mindmap-minimap {
