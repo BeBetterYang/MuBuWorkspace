@@ -12,7 +12,7 @@ interface MindMapAppearancePanelProps {
 }
 
 export const MindMapAppearancePanel: React.FC<MindMapAppearancePanelProps> = ({ appearance, onChange }) => (
-  <div className="absolute right-0 top-11 z-30 w-[420px] max-w-[calc(100vw-2rem)] rounded-xl border border-zinc-200 bg-white p-4 shadow-xl">
+  <div className="apple-material absolute right-0 top-12 z-30 max-h-[min(70dvh,680px)] w-[420px] max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-2xl p-4">
     <div className="mb-3 text-sm font-semibold text-zinc-900">配色</div>
     {(['简约', '浅色', '深色'] as const).map((group) => (
       <div key={group} className="mb-4">

@@ -149,9 +149,9 @@ export const NodeFormattingToolbar: React.FC<{
     input.click()
   }
   return (
-    <div className="fixed bottom-7 left-1/2 z-[80] -translate-x-1/2" onMouseDown={(event) => event.stopPropagation()}>
+    <div className="node-formatting-shell fixed bottom-[calc(0.75rem+var(--safe-bottom))] left-1/2 z-[80] max-w-[calc(100vw-1.5rem)] -translate-x-1/2" onMouseDown={(event) => event.stopPropagation()}>
       {panel && (
-        <div className="absolute bottom-12 min-w-48 -translate-x-1/2 rounded-xl border border-zinc-200 bg-white p-2 text-zinc-800 shadow-[0_14px_36px_rgba(0,0,0,0.18)]" style={{ left: panelLeft }}>
+        <div className="apple-material absolute bottom-14 min-w-48 max-w-[calc(100vw-1.5rem)] -translate-x-1/2 rounded-2xl p-2 text-zinc-800" style={{ left: panelLeft }}>
           {panel === 'type' && <div className="space-y-2">
             <div className="flex items-center gap-1">{[12, 14, 16, 18, 20, 24].map((size) => <button key={size} type="button" className={`rounded px-2 py-1 text-xs ${format.fontSize === size || !format.fontSize && size === 14 ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-zinc-100'}`} onClick={() => updateAll({ fontSize: size })}>{size}</button>)}</div>
             <div className="flex items-center gap-1 border-t border-zinc-100 pt-2">
@@ -177,7 +177,7 @@ export const NodeFormattingToolbar: React.FC<{
         </div>
       )}
 
-      <div className="flex items-center gap-0.5 rounded-xl border border-white/10 bg-zinc-900/95 p-1.5 shadow-[0_14px_38px_rgba(0,0,0,0.28)] backdrop-blur">
+      <div className="node-formatting-toolbar flex max-w-[calc(100vw-1.5rem)] items-center gap-0.5 overflow-x-auto rounded-2xl border border-white/10 bg-zinc-900/95 p-1.5 shadow-[0_14px_38px_rgba(0,0,0,0.28)] backdrop-blur-xl">
         {selectedIds.length > 1 && <span className="px-2 text-xs text-zinc-300">{selectedIds.length} 项</span>}
         <button type="button" title="文字格式" aria-label="文字格式" className={button(panel === 'type')} onClick={(event) => togglePanel('type', event)}><Type size={18} /></button>
         <button type="button" title="标记颜色" aria-label="标记颜色" className={button(panel === 'marker')} onMouseDown={(event) => event.preventDefault()} onClick={(event) => togglePanel('marker', event)}><Highlighter size={17} style={{ color: format.backgroundColor ?? '#fde047' }} /></button>

@@ -97,7 +97,7 @@ export const MindMapCanvas = React.forwardRef<HTMLDivElement, MindMapCanvasProps
         style={{ backgroundColor }}
       >
       </ReactFlow>
-      <div className="absolute bottom-4 left-4 z-20 flex w-10 flex-col overflow-hidden rounded-md border border-zinc-200 bg-white shadow-sm">
+      <div className="mindmap-zoom-controls safe-floating-bottom apple-material absolute left-[calc(0.75rem+var(--safe-left))] z-20 flex w-11 flex-col overflow-hidden rounded-2xl">
         <button type="button" aria-label="放大" title="放大" className="flex h-8 items-center justify-center border-b border-zinc-100 text-xl text-zinc-700 hover:bg-zinc-50" onClick={() => void flowInstanceRef.current?.zoomIn?.({ duration: 120 })}>+</button>
         <button type="button" aria-label="恢复 100%" title="点击恢复 100%" className="flex h-8 items-center justify-center border-b border-zinc-100 px-0.5 text-[10px] font-medium text-zinc-600 hover:bg-zinc-50" onClick={() => void flowInstanceRef.current?.zoomTo?.(1, { duration: 160 })}>{Math.round(zoom * 100)}%</button>
         <button type="button" aria-label="缩小" title="缩小" className="flex h-8 items-center justify-center text-xl text-zinc-700 hover:bg-zinc-50" onClick={() => void flowInstanceRef.current?.zoomOut?.({ duration: 120 })}>−</button>

@@ -73,8 +73,8 @@ export const AgentPanel: React.FC = () => {
   )
 
   return (
-    <aside className="flex h-full w-[360px] shrink-0 flex-col border-l border-zinc-200 bg-white text-zinc-800 shadow-sm">
-      <header className="flex h-12 items-center justify-between border-b border-zinc-200 px-4">
+    <aside className="fixed inset-y-0 right-0 z-50 flex h-[100dvh] w-[min(380px,92vw)] shrink-0 flex-col border-l border-zinc-200 bg-white pb-[var(--safe-bottom)] pt-[var(--safe-top)] text-zinc-800 shadow-2xl lg:relative lg:z-auto lg:h-full lg:w-[360px] lg:pb-0 lg:pt-0 lg:shadow-sm">
+      <header className="flex h-14 items-center justify-between border-b border-zinc-200 px-4">
         <div className="flex items-center gap-2">
           <Bot size={16} className="text-zinc-700" />
           <h2 className="text-sm font-semibold">文档助理</h2>
@@ -83,7 +83,8 @@ export const AgentPanel: React.FC = () => {
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100"
+          data-touch-target="true"
+          className="apple-pressable flex h-9 w-9 items-center justify-center rounded-xl text-zinc-500 hover:bg-zinc-100"
           title="关闭助理"
         >
           <X size={15} />
@@ -238,7 +239,8 @@ export const AgentPanel: React.FC = () => {
             <button
               type="button"
               onClick={() => void abort()}
-              className="flex h-9 w-9 items-center justify-center rounded-md border border-zinc-200 text-zinc-600 hover:bg-zinc-50"
+              data-touch-target="true"
+              className="apple-pressable flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 text-zinc-600 hover:bg-zinc-50"
               title="停止"
             >
               <Square size={14} />
@@ -248,7 +250,8 @@ export const AgentPanel: React.FC = () => {
               type="button"
               onClick={() => void handleSend()}
               disabled={!currentDoc || !message.trim()}
-              className="flex h-9 items-center gap-1.5 rounded-md bg-zinc-900 px-3 text-xs font-medium text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-40"
+              data-touch-target="true"
+              className="apple-pressable flex h-9 items-center gap-1.5 rounded-xl bg-zinc-900 px-3 text-xs font-medium text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Send size={13} />
               发送

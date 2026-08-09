@@ -19,6 +19,7 @@ import {
 } from '../services/siweiApi'
 import type { ExportFormat, ImportApplyMode, ImportFormat, ImportPreview } from '../types/document'
 import { useAsyncOperation } from '../hooks/useAsyncOperation'
+import { useMediaQuery } from '../hooks/useMediaQuery'
 import { AppHeader } from './components/AppHeader'
 import { ExportDialog, ImportDialog, ImportPreviewDialog } from './components/DocumentDialogs'
 import { ViewSwitcher } from './components/ViewSwitcher'
@@ -56,6 +57,7 @@ export const App: React.FC = () => {
   const isAgentOpen = useAgentStore((s) => s.isOpen)
   const setAgentOpen = useAgentStore((s) => s.setOpen)
   const workspaceItems = useServerWorkspaceStore((s) => s.items)
+  const useVerticalSplit = useMediaQuery('(max-width: 900px) and (orientation: portrait)')
 
   const [isImportOpen, setIsImportOpen] = React.useState(false)
   const [isExportOpen, setIsExportOpen] = React.useState(false)
@@ -113,7 +115,15 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen w-screen select-none overflow-hidden bg-linen font-sans text-zinc-800 dark:text-zinc-200">
+    <div className="app-shell flex w-screen select-none overflow-hidden bg-linen font-sans text-zinc-800 dark:text-zinc-200">
+      {!settings.focusMode && !settings.sidebarCollapsed && (
+        <button
+          type="button"
+          aria-label="关闭侧边栏"
+          className="fixed inset-0 z-[80] bg-black/10 backdrop-blur-[1px] lg:hidden"
+          onClick={() => void updateSettings({ sidebarCollapsed: true })}
+        />
+      )}
       {!settings.focusMode && <Sidebar />}
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-linen dark:bg-zinc-950">
@@ -154,9 +164,9 @@ export const App: React.FC = () => {
                     {viewMode === 'outline' && <OutlineEditor />}
                     {viewMode === 'mindmap' && <MindMapView />}
                     {viewMode === 'split' && (
-                      <PanelGroup orientation="horizontal">
+                      <PanelGroup orientation={useVerticalSplit ? 'vertical' : 'horizontal'}>
                         <Panel defaultSize={50} minSize={20}>
-                          <div className="h-full overflow-hidden border-r border-zinc-200/60 dark:border-zinc-800/60">
+                          <div className="h-full overflow-hidden border-b border-r border-zinc-200/60 dark:border-zinc-800/60">
                             <OutlineEditor />
                           </div>
                         </Panel>
@@ -172,20 +182,31 @@ export const App: React.FC = () => {
                 )}
               </AnimatePresence>
             </div>
-            {isAgentOpen && <AgentPanel />}
+            {isAgentOpen && (
+              <>
+                <button
+                  type="button"
+                  aria-label="关闭文档助理"
+                  className="fixed inset-0 z-40 bg-black/10 backdrop-blur-[1px] lg:hidden"
+                  onClick={() => setAgentOpen(false)}
+                />
+                <AgentPanel />
+              </>
+            )}
           </div>
         </main>
       </div>
 
       {settings.focusMode && (
         <>
-          <div className="fixed left-1/2 top-3 z-40 -translate-x-1/2">
+          <div className="safe-floating-top fixed left-1/2 z-40 -translate-x-1/2">
             <ViewSwitcher viewMode={viewMode} onViewModeChange={setViewMode} />
           </div>
           <button
             type="button"
             onClick={exitFocusMode}
-            className="fixed right-4 top-3 z-40 flex h-8 w-8 items-center justify-center rounded-md border border-zinc-200/70 bg-white/80 text-zinc-500 shadow-sm backdrop-blur-md transition hover:bg-white hover:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-300 dark:border-zinc-800/70 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-100 dark:focus:ring-zinc-700"
+            data-touch-target="true"
+            className="safe-floating-top apple-material apple-pressable fixed right-[calc(0.75rem+var(--safe-right))] z-40 flex h-9 w-9 items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-300 dark:text-zinc-300 dark:hover:text-zinc-100 dark:focus:ring-zinc-700"
             title="退出专注模式"
             aria-label="退出专注模式"
           >

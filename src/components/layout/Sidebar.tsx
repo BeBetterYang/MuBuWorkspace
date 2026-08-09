@@ -62,6 +62,7 @@ export const Sidebar: React.FC = () => {
   React.useEffect(() => { void loadWorkspace() }, [loadWorkspace])
 
   const recentDocuments = React.useMemo(() => items.filter((item) => item.type === 'document').sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 10), [items])
+  const itemById = React.useMemo(() => new Map(items.map((item) => [item.id, item])), [items])
   const visibleItems = React.useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase()
     if (!normalized) return items
@@ -72,11 +73,23 @@ export const Sidebar: React.FC = () => {
       let parentId = item.parentId
       while (parentId) {
         visibleIds.add(parentId)
-        parentId = items.find((candidate) => candidate.id === parentId)?.parentId ?? null
+        parentId = itemById.get(parentId)?.parentId ?? null
       }
     })
     return items.filter((item) => visibleIds.has(item.id))
-  }, [items, query])
+  }, [itemById, items, query])
+  const itemsByParent = React.useMemo(() => {
+    const grouped = new Map<string | null, ServerWorkspaceItem[]>()
+    visibleItems.forEach((item) => {
+      const siblings = grouped.get(item.parentId) ?? []
+      siblings.push(item)
+      grouped.set(item.parentId, siblings)
+    })
+    grouped.forEach((siblings) => siblings.sort((a, b) => (
+      a.type === b.type ? b.updatedAt - a.updatedAt : a.type === 'folder' ? -1 : 1
+    )))
+    return grouped
+  }, [visibleItems])
 
   React.useEffect(() => {
     if (!createMenuOpen) return
@@ -135,6 +148,9 @@ export const Sidebar: React.FC = () => {
     try {
       await loadDoc(id)
       setWorkspaceView('editor')
+      if (window.matchMedia?.('(max-width: 1024px)').matches) {
+        void updateSettings({ sidebarCollapsed: true })
+      }
     } catch (error) {
       toast.error(`文档加载失败：${String(error)}`)
     }
@@ -164,11 +180,11 @@ export const Sidebar: React.FC = () => {
   if (isCollapsed) {
     return (
       <aside className="relative h-full w-0 shrink-0 overflow-visible">
-        <div className="absolute left-1 top-2 z-[90]" onMouseEnter={keepCollapsedPreviewOpen} onMouseLeave={scheduleCollapsedPreviewClose}>
+        <div className="safe-floating-top absolute left-[calc(0.25rem+var(--safe-left))] z-[90]" onMouseEnter={keepCollapsedPreviewOpen} onMouseLeave={scheduleCollapsedPreviewClose}>
           <button type="button" onClick={() => void updateSettings({ sidebarCollapsed: false })} className="flex h-7 w-7 items-center justify-center rounded bg-transparent text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900" title="展开侧边栏 Ctrl + \">
             {collapsedRecentOpen ? <ChevronRight size={16} /> : <Menu size={16} />}
           </button>
-          {collapsedRecentOpen && <div className="absolute left-0 top-7 w-56 pt-1" onMouseEnter={keepCollapsedPreviewOpen} onMouseLeave={scheduleCollapsedPreviewClose}><div className="rounded-lg border border-zinc-200 bg-white p-3 text-[14px] shadow-xl">
+          {collapsedRecentOpen && <div className="absolute left-0 top-9 w-60 pt-2" onMouseEnter={keepCollapsedPreviewOpen} onMouseLeave={scheduleCollapsedPreviewClose}><div className="apple-material rounded-2xl p-3 text-[14px]">
             <div className="mb-2 text-xs text-zinc-500">最近编辑</div>
             <div className="space-y-0.5">{recentDocuments.map((item) => <button key={item.id} type="button" className="flex h-8 w-full items-center gap-2 rounded px-2 text-left text-sm text-zinc-600 hover:bg-sky-50 hover:text-sky-700" onClick={() => void openDocument(item.id)}><FileText size={13} className="text-zinc-400" /><span className="truncate">{item.name}</span></button>)}</div>
           </div></div>}
@@ -178,8 +194,8 @@ export const Sidebar: React.FC = () => {
   }
 
   return (
-    <aside className="relative flex h-full w-[270px] shrink-0 flex-col border-r border-zinc-200 bg-white text-[14px] text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
-      <div className="flex h-10 items-center gap-2 px-3">
+    <aside className="relative flex h-full w-[270px] shrink-0 flex-col border-r border-zinc-200 bg-white pb-[var(--safe-bottom)] pt-[var(--safe-top)] text-[14px] text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-[90] max-lg:h-[100dvh] max-lg:w-[min(320px,88vw)] max-lg:shadow-2xl lg:pb-0 lg:pt-0">
+      <div className="flex h-12 items-center gap-2 px-3">
         <div className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-200 text-[10px] text-zinc-600">思</div>
         <span className="text-xs font-medium">?</span><ChevronDown size={13} className="text-zinc-500" />
         <div className="flex-1" />
@@ -189,7 +205,7 @@ export const Sidebar: React.FC = () => {
       </div>
 
       <div ref={createMenuRef} className="relative flex items-center gap-2 px-3 pb-3">
-        <label className="flex h-8 min-w-0 flex-1 items-center gap-2 rounded-md bg-zinc-100 px-2.5 text-zinc-400 focus-within:bg-white focus-within:ring-1 focus-within:ring-sky-300">
+        <label className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-xl bg-zinc-100 px-3 text-zinc-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-sky-300">
           <Search size={14} className="shrink-0" />
           <input value={query} onChange={(event) => setQuery(event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm text-zinc-700 outline-none" placeholder="搜索文档" aria-label="搜索文档" />
         </label>
@@ -212,7 +228,7 @@ export const Sidebar: React.FC = () => {
         )}
         {loading ? <div className="px-3 py-5 text-sm text-zinc-400">正在加载文档…</div> : (
           <DocumentTree
-            items={visibleItems}
+            itemsByParent={itemsByParent}
             parentId={null}
             depth={0}
             currentDocumentId={currentDocumentId}
@@ -276,7 +292,7 @@ const SidebarItemMenu: React.FC<{
 const ItemMenuButton: React.FC<{ icon: typeof FileText; label: string; danger?: boolean; onClick: () => void }> = ({ icon: Icon, label, danger, onClick }) => <button type="button" className={`flex h-8 w-full items-center gap-2 rounded px-2 text-left text-sm hover:bg-zinc-100 ${danger ? 'text-rose-500 hover:bg-rose-50' : ''}`} onClick={onClick}><Icon size={15} /><span>{label}</span></button>
 
 const DocumentTree: React.FC<{
-  items: ServerWorkspaceItem[]
+  itemsByParent: Map<string | null, ServerWorkspaceItem[]>
   parentId: string | null
   depth: number
   currentDocumentId: string | null
@@ -290,15 +306,15 @@ const DocumentTree: React.FC<{
   onCommitRename: () => void
   onOpenMenu: (item: ServerWorkspaceItem, rect: DOMRect) => void
   onCreateDocument: (folderId: string) => void
-}> = ({ items, parentId, depth, currentDocumentId, selectedFolderId, expandedIds, onToggle, onSelectFolder, onOpenDocument, renameDraft, onRenameDraftChange, onCommitRename, onOpenMenu, onCreateDocument }) => {
-  const children = items.filter((item) => item.parentId === parentId).sort((a, b) => a.type === b.type ? b.updatedAt - a.updatedAt : a.type === 'folder' ? -1 : 1)
+}> = ({ itemsByParent, parentId, depth, currentDocumentId, selectedFolderId, expandedIds, onToggle, onSelectFolder, onOpenDocument, renameDraft, onRenameDraftChange, onCommitRename, onOpenMenu, onCreateDocument }) => {
+  const children = itemsByParent.get(parentId) ?? []
   return <>{children.map((item) => {
     const isFolder = item.type === 'folder'
     const expanded = expandedIds.has(item.id)
     const active = isFolder ? selectedFolderId === item.id : currentDocumentId === item.id
     return (
       <React.Fragment key={item.id}>
-        <div className={`group flex h-8 items-center rounded-md pr-1 text-sm transition ${active ? 'bg-sky-50 font-medium text-sky-700 dark:bg-sky-950/40 dark:text-sky-300' : 'text-zinc-600 hover:bg-sky-50 hover:text-sky-700 dark:text-zinc-400 dark:hover:bg-zinc-900'}`} style={{ paddingLeft: 6 + depth * 16 }}>
+        <div className={`sidebar-tree-row group flex h-9 items-center rounded-xl pr-1 text-sm transition-colors ${active ? 'bg-sky-50 font-medium text-sky-700 dark:bg-sky-950/40 dark:text-sky-300' : 'text-zinc-600 hover:bg-sky-50 hover:text-sky-700 dark:text-zinc-400 dark:hover:bg-zinc-900'}`} style={{ paddingLeft: 6 + depth * 16 }}>
           <button type="button" onClick={() => isFolder ? onToggle(item.id) : onOpenDocument(item.id)} className="flex min-w-0 flex-1 items-center gap-1.5 text-left">
             {isFolder ? <ChevronRight size={12} className={`shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`} /> : <span className="w-3" />}
             {isFolder ? (expanded ? <FolderOpen size={14} className="shrink-0 text-amber-500" /> : <Folder size={14} className="shrink-0 text-amber-500" />) : <FileText size={14} className="shrink-0 text-indigo-500" />}
@@ -307,7 +323,7 @@ const DocumentTree: React.FC<{
           {isFolder && <button type="button" aria-label={`在 ${item.name} 中新建文档`} title="在当前文件夹中新建文档" onClick={(event) => { event.stopPropagation(); onCreateDocument(item.id) }} className="hidden h-6 w-6 items-center justify-center rounded text-zinc-500 hover:bg-zinc-200 group-hover:flex"><Plus size={13} /></button>}
           <button type="button" aria-label={`${item.name} 更多操作`} onClick={(event) => { event.stopPropagation(); if (isFolder) onSelectFolder(item.id); onOpenMenu(item, event.currentTarget.getBoundingClientRect()) }} className="hidden h-6 w-6 items-center justify-center rounded text-zinc-500 hover:bg-zinc-200 group-hover:flex"><MoreHorizontal size={13} /></button>
         </div>
-        {isFolder && expanded && <DocumentTree items={items} parentId={item.id} depth={depth + 1} currentDocumentId={currentDocumentId} selectedFolderId={selectedFolderId} expandedIds={expandedIds} onToggle={onToggle} onSelectFolder={onSelectFolder} onOpenDocument={onOpenDocument} renameDraft={renameDraft} onRenameDraftChange={onRenameDraftChange} onCommitRename={onCommitRename} onOpenMenu={onOpenMenu} onCreateDocument={onCreateDocument} />}
+        {isFolder && expanded && <DocumentTree itemsByParent={itemsByParent} parentId={item.id} depth={depth + 1} currentDocumentId={currentDocumentId} selectedFolderId={selectedFolderId} expandedIds={expandedIds} onToggle={onToggle} onSelectFolder={onSelectFolder} onOpenDocument={onOpenDocument} renameDraft={renameDraft} onRenameDraftChange={onRenameDraftChange} onCommitRename={onCommitRename} onOpenMenu={onOpenMenu} onCreateDocument={onCreateDocument} />}
       </React.Fragment>
     )
   })}</>

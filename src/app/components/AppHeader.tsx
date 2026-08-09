@@ -65,7 +65,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.16 }}
-      className={`z-10 grid h-12 shrink-0 grid-cols-[minmax(120px,1fr)_auto_minmax(250px,1fr)] items-center gap-2 overflow-hidden border-b border-zinc-200/60 bg-white/80 pr-3 backdrop-blur-md dark:border-zinc-800/60 dark:bg-zinc-900/80 ${sidebarCollapsed ? 'pl-10' : 'pl-3'}`}
+      className={`z-10 grid min-h-[calc(3.5rem+var(--safe-top))] shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1 overflow-hidden border-b border-zinc-200/60 bg-white/80 pb-1 pr-[calc(0.5rem+var(--safe-right))] pt-[calc(0.25rem+var(--safe-top))] backdrop-blur-xl dark:border-zinc-800/60 dark:bg-zinc-900/80 ${sidebarCollapsed ? 'pl-[calc(3.25rem+var(--safe-left))]' : 'pl-3'}`}
     >
       <div className="flex min-w-0 items-center justify-start gap-2 overflow-hidden">
         <div className="min-w-0 cursor-default truncate whitespace-nowrap px-1 text-sm text-zinc-500" title={documentPath.join(' / ')}>
@@ -87,7 +87,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           type="button"
           onClick={onUndo}
           disabled={!canUndo}
-          className="btn-patch-light flex h-8 w-8 items-center justify-center rounded-md focus:outline-none disabled:cursor-not-allowed disabled:opacity-35"
+          data-touch-target="true"
+          aria-label="撤销"
+          className="btn-patch-light apple-pressable flex h-9 w-9 items-center justify-center rounded-xl focus:outline-none disabled:cursor-not-allowed disabled:opacity-35"
           title="撤销 (Ctrl+Z)"
         >
           <Undo2 size={15} />
@@ -97,7 +99,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           type="button"
           onClick={onRedo}
           disabled={!canRedo}
-          className="btn-patch-light flex h-8 w-8 items-center justify-center rounded-md focus:outline-none disabled:cursor-not-allowed disabled:opacity-35"
+          data-touch-target="true"
+          aria-label="重做"
+          className="btn-patch-light apple-pressable flex h-9 w-9 items-center justify-center rounded-xl focus:outline-none disabled:cursor-not-allowed disabled:opacity-35"
           title="重做 (Ctrl+Shift+Z)"
         >
           <Redo2 size={15} />
@@ -106,7 +110,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         <button
           type="button"
           onClick={onToggleAgent}
-          className={`btn-patch-light flex h-8 w-8 items-center justify-center rounded-md focus:outline-none ${
+          data-touch-target="true"
+          aria-label="文档助理"
+          className={`btn-patch-light apple-pressable flex h-9 w-9 items-center justify-center rounded-xl focus:outline-none ${
             isAgentOpen ? 'bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900' : ''
           }`}
           title="文档助理"
@@ -117,7 +123,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         <button
           type="button"
           onClick={onOpenImport}
-          className="btn-patch-light flex h-8 w-8 items-center justify-center rounded-md focus:outline-none"
+          data-touch-target="true"
+          aria-label="导入"
+          className="btn-patch-light apple-pressable flex h-9 w-9 items-center justify-center rounded-xl focus:outline-none"
           title="导入"
         >
           <FileInput size={15} />
@@ -126,7 +134,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         <button
           type="button"
           onClick={onOpenExport}
-          className="btn-patch-light flex h-8 w-8 items-center justify-center rounded-md focus:outline-none"
+          data-touch-target="true"
+          aria-label="导出"
+          className="btn-patch-light apple-pressable flex h-9 w-9 items-center justify-center rounded-xl focus:outline-none"
           title="导出"
         >
           <FileOutput size={15} />
@@ -144,7 +154,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           onClick={() => void onSave().then((success) => {
             if (success) toast.success('保存成功')
           })}
-          className="flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md bg-blue-600 px-3 text-xs font-medium text-white shadow-sm transition-all hover:bg-blue-700 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-60"
+          data-touch-target="true"
+          className="apple-pressable flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl bg-blue-600 px-3 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-60"
           title="保存 (Ctrl+S)"
           disabled={saveStatus === 'saving'}
         >

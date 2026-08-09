@@ -19,7 +19,30 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      testIgnore: /ipad-layout\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'ipad-portrait',
+      testMatch: /ipad-layout\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 834, height: 1194 },
+        deviceScaleFactor: 2,
+        hasTouch: true,
+        isMobile: true,
+      },
+    },
+    {
+      name: 'ipad-landscape',
+      testMatch: /ipad-layout\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1194, height: 834 },
+        deviceScaleFactor: 2,
+        hasTouch: true,
+        isMobile: true,
+      },
     },
   ],
 })

@@ -33,13 +33,13 @@ export const MindMapToolbar: React.FC<MindMapToolbarProps> = ({
 
   if (!expanded) {
     return (
-      <div className="absolute right-4 top-4 z-10 rounded-lg border border-amber-900/10 bg-[#FAF8F4]/95 p-1 shadow-fabric">
+      <div className="mindmap-floating-toolbar safe-floating-top apple-material absolute right-[calc(0.75rem+var(--safe-right))] z-30 rounded-2xl p-1">
         <button
           type="button"
           aria-label="展开导图工具"
           title="展开导图工具"
           onClick={() => setExpanded(true)}
-          className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition hover:bg-amber-50 hover:text-zinc-800"
+          className="apple-pressable flex h-9 w-9 items-center justify-center rounded-xl text-zinc-500 hover:bg-amber-50 hover:text-zinc-800"
         >
           <SlidersHorizontal className="h-4 w-4" />
         </button>
@@ -48,7 +48,7 @@ export const MindMapToolbar: React.FC<MindMapToolbarProps> = ({
   }
 
   return (
-    <div className="absolute right-4 top-4 z-10 flex items-center gap-1 rounded-lg border border-amber-900/10 bg-[#FAF8F4]/95 p-1 shadow-fabric">
+    <div className="mindmap-floating-toolbar safe-floating-top apple-material absolute right-[calc(0.75rem+var(--safe-right))] z-30 flex max-w-[calc(100vw-1.5rem)] items-center gap-1 overflow-x-auto rounded-2xl p-1">
       <button
         type="button"
         aria-label="布局"
