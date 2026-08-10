@@ -1,9 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createDocument, createNode } from '../../test/fixtures'
-import { createDocumentSnapshotKey } from '../agent/agentChangePlan'
-import { useAgentStore } from '../agent/agentStore'
-import type { AgentChangePlan, AgentOperation } from '../agent/agentTypes'
 import { useDocumentStore } from '../document/documentStore'
 import { useSettingsStore } from '../settings/settingsStore'
 import { MindMapView } from './MindMapView'
@@ -185,7 +182,6 @@ vi.mock('reactflow', async () => {
     useStore: (selector: (state: { transform: [number, number, number] }) => unknown) => selector({ transform: [0, 0, 1] }),
   }
 })
-
 function expandMindMapToolbar() {
   const expandButton = screen.queryByRole('button', { name: '展开导图工具' })
   if (expandButton) fireEvent.click(expandButton)
@@ -213,12 +209,6 @@ describe('MindMapView', () => {
       cleanSnapshotKey: null,
       activeTextEditSession: null,
       outlineSelection: { anchorNodeId: null, selectedNodeIds: [] },
-    })
-    useAgentStore.setState({
-      pendingPlan: null,
-      error: null,
-      messages: [],
-      isSending: false,
     })
     useSettingsStore.setState({
       settings: DEFAULT_SETTINGS,
@@ -848,153 +838,6 @@ describe('MindMapView', () => {
     expect(useDocumentStore.getState().currentDoc?.mindMapLayout?.nodes['node-1-1'].position).toEqual({ x: 240, y: 96 })
   })
 
-  it('renders assistant previews inside mind map nodes', () => {
-    const doc = useDocumentStore.getState().currentDoc!
-    act(() => {
-      useAgentStore.getState().setPendingPlan({
-        ...createStrictPlan(doc.id, createDocumentSnapshotKey(doc), [
-          {
-            type: 'updateNode',
-            nodeId: 'node-2',
-            text: '助理改写',
-          },
-          {
-            type: 'deleteNode',
-            nodeId: 'node-1-1',
-          },
-        ]),
-      })
-    })
-
-    render(<MindMapView />)
-
-    expect(screen.getByTestId('mindmap-node-node-2')).toHaveTextContent('助理改写')
-    expect(screen.getByTestId('mindmap-node-node-1-1')).toHaveTextContent('将删除')
-  })
-
-  it('renders root insertion previews as mind map nodes when the document has no children', () => {
-    const doc = createDocument()
-    const emptyDoc = {
-      ...doc,
-      root: {
-        ...doc.root,
-        children: [],
-      },
-    }
-    useDocumentStore.setState({ currentDoc: emptyDoc })
-    act(() => {
-      useAgentStore.getState().setPendingPlan({
-        ...createStrictPlan(emptyDoc.id, createDocumentSnapshotKey(emptyDoc), [
-          {
-            type: 'insertNode',
-            parentNodeId: emptyDoc.root.id,
-            index: 0,
-            node: { id: 'agent-node', text: '计算器开发' },
-          },
-        ]),
-      })
-    })
-
-    render(<MindMapView />)
-
-    expect(screen.getByTestId('mindmap-node-agent-insertion-preview:agent-node')).toHaveTextContent('计算器开发')
-    expect(screen.getByTestId('mindmap-node-agent-insertion-preview:agent-node')).toHaveTextContent('将插入')
-  })
-
-  it('renders nested assistant insertion preview nodes before confirmation', () => {
-    const doc = createDocument()
-    const emptyDoc = {
-      ...doc,
-      root: {
-        ...doc.root,
-        children: [],
-      },
-    }
-    useDocumentStore.setState({ currentDoc: emptyDoc })
-    act(() => {
-      useAgentStore.getState().setPendingPlan({
-        ...createStrictPlan(emptyDoc.id, createDocumentSnapshotKey(emptyDoc), [
-          {
-            type: 'insertNode',
-            parentNodeId: emptyDoc.root.id,
-            index: 0,
-            node: {
-              id: 'agent-root',
-              text: 'AI 生成导图',
-              children: [
-                {
-                  id: 'agent-child',
-                  text: '一级分支',
-                  children: [
-                    {
-                      id: 'agent-grandchild',
-                      text: '二级分支',
-                    },
-                  ],
-                },
-              ],
-            },
-          },
-        ]),
-      })
-    })
-
-    render(<MindMapView />)
-
-    expect(screen.getByTestId('mindmap-node-agent-insertion-preview:agent-root')).toHaveTextContent('AI 生成导图')
-    expect(screen.getByTestId('mindmap-node-agent-insertion-preview:agent-child')).toHaveTextContent('一级分支')
-    expect(screen.getByTestId('mindmap-node-agent-insertion-preview:agent-grandchild')).toHaveTextContent('二级分支')
-  })
-
-  it('lays out nested assistant insertion previews with the balanced strategy before confirmation', () => {
-    useSettingsStore.setState((state) => ({
-      settings: {
-        ...state.settings,
-        experimentalMindMapLayoutEngine: true,
-      },
-    }))
-    const doc = createDocument()
-    const emptyDoc = {
-      ...doc,
-      root: {
-        ...doc.root,
-        children: [],
-      },
-    }
-    useDocumentStore.setState({ currentDoc: emptyDoc })
-    act(() => {
-      useAgentStore.getState().setPendingPlan({
-        ...createStrictPlan(emptyDoc.id, createDocumentSnapshotKey(emptyDoc), [
-          {
-            type: 'insertNode',
-            parentNodeId: emptyDoc.root.id,
-            index: 0,
-            node: {
-              id: 'agent-root',
-              text: 'AI 生成导图',
-              children: [
-                {
-                  id: 'agent-child',
-                  text: '一级分支',
-                },
-              ],
-            },
-          },
-        ]),
-      })
-    })
-
-    render(<MindMapView />)
-    expandMindMapToolbar()
-    fireEvent.change(screen.getByLabelText('导图布局策略'), { target: { value: 'balanced-mindmap' } })
-
-    const previewRootX = Number(screen.getByTestId('flow-node-agent-insertion-preview:agent-root').dataset.positionX)
-    const previewChildX = Number(screen.getByTestId('flow-node-agent-insertion-preview:agent-child').dataset.positionX)
-
-    expect(previewRootX).toBeLessThan(0)
-    expect(previewChildX).toBeLessThan(previewRootX)
-  })
-
   it('exposes classic, balanced, and free layouts while migrating removed radial strategy', () => {
     useDocumentStore.setState((state) => ({
       currentDoc: state.currentDoc
@@ -1370,21 +1213,3 @@ describe('MindMapView', () => {
   })
 
 })
-
-function createStrictPlan(
-  documentId: string,
-  snapshotKey: string,
-  operations: AgentOperation[],
-): AgentChangePlan {
-  return {
-    schemaVersion: 1,
-    contextScope: 'currentDocument',
-    documentId,
-    snapshotKey,
-    summary: '测试修改计划',
-    rationale: '验证脑图中的助理预览',
-    riskLevel: 'low',
-    references: [],
-    operations,
-  }
-}

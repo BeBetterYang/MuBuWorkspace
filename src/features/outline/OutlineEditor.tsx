@@ -7,8 +7,6 @@ import { NodeContextMenu } from '../document/NodeContextMenu'
 import { NodeDeleteDialog } from '../document/NodeDeleteDialog'
 import { useNodeContextMenuController } from '../document/useNodeContextMenuController'
 import { formatDeleteConfirmation } from '../document/nodeActions'
-import { createAgentDocumentPreview } from '../agent/agentChangePlan'
-import { useAgentStore } from '../agent/agentStore'
 import { NodeFormattingToolbar } from '../document/NodeFormattingToolbar'
 import { resolveMindMapTheme } from '../mindmap/mindMapThemes'
 
@@ -18,7 +16,6 @@ export const OutlineEditor: React.FC = () => {
   const outlineSelection = useDocumentStore((s) => s.outlineSelection)
   const collapsedNodeIds = useDocumentStore((s) => s.collapsedNodeIds)
   const filter = useDocumentStore((s) => s.filter)
-  const pendingAgentPlan = useAgentStore((s) => s.pendingPlan)
   
   const selectNode = useDocumentStore((s) => s.selectNode)
   const setOutlineSelection = useDocumentStore((s) => s.setOutlineSelection)
@@ -57,14 +54,6 @@ export const OutlineEditor: React.FC = () => {
     if (!currentDoc) return []
     return filterVisibleTree(currentDoc.root, collapsedNodeIds, filter).nodes
   }, [currentDoc, collapsedNodeIds, filter])
-
-  const agentPreview = React.useMemo(
-    () => createAgentDocumentPreview(pendingAgentPlan),
-    [pendingAgentPlan],
-  )
-  const rootAgentInsertions = currentDoc
-    ? agentPreview.insertionsByParentId.get(currentDoc.root.id) ?? []
-    : []
 
   const handleNavigate = (nodeId: string, direction: 'up' | 'down') => {
     const index = visibleNodes.findIndex((n) => n.node.id === nodeId)
@@ -198,8 +187,6 @@ export const OutlineEditor: React.FC = () => {
             isSelected={selectedNodeId === item.node.id}
             isMultiSelected={selectedVisibleNodeIds.includes(item.node.id)}
             isCollapsed={Boolean(item.node.collapsed || collapsedNodeIds.has(item.node.id))}
-            agentPreview={agentPreview.nodePreviews.get(item.node.id)}
-            agentInsertions={agentPreview.insertionsByParentId.get(item.node.id) ?? []}
             onNavigate={(dir) => handleNavigate(item.node.id, dir)}
             onNodeClick={handleNodeClick}
             onBatchMove={runBatchMove}
@@ -210,24 +197,7 @@ export const OutlineEditor: React.FC = () => {
           />
         ))}
 
-        {visibleNodes.length === 0 && rootAgentInsertions.length > 0 && (
-          <div className="my-6 space-y-2">
-            {rootAgentInsertions.map((insertion) => (
-              <div
-                key={insertion.node.id}
-                data-agent-insertion-parent-id={currentDoc.root.id}
-                className="flex h-10 items-center rounded-lg border border-dashed border-emerald-300 bg-emerald-50/70 px-3 text-sm font-medium text-emerald-700"
-              >
-                <span className="mr-2 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
-                  将插入
-                </span>
-                <span className="truncate">{insertion.node.text || '空白节点'}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {visibleNodes.length === 0 && rootAgentInsertions.length === 0 && (
+        {visibleNodes.length === 0 && (
           <div
             onClick={() => insertNode(currentDoc.root.id)}
             className="group my-6 flex cursor-pointer select-none flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[var(--color-hairline-strong)] bg-[var(--color-surface-soft)] p-8 text-[var(--color-stone)] hover:border-[var(--color-primary)] hover:bg-[var(--color-tint-lavender)] hover:text-[var(--color-primary-deep)] dark:border-zinc-800 dark:bg-zinc-900/20 dark:text-zinc-500 dark:hover:border-zinc-600 dark:hover:text-zinc-300"

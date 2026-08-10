@@ -16,14 +16,6 @@ const appSettings: AppSettings = {
   theme: 'system',
   focusMode: false,
   experimentalMindMapLayoutEngine: false,
-  agent: {
-    enabled: false,
-    provider: 'openai-compatible',
-    model: 'gpt-4.1',
-    baseUrl: 'https://api.openai.com/v1',
-    thinkingLevel: 'medium',
-    contextScope: 'currentDocument',
-  },
 }
 
 vi.mock('../services/siweiApi', () => ({
@@ -49,12 +41,6 @@ vi.mock('../services/siweiApi', () => ({
   searchDocument: vi.fn(() => Promise.resolve([])),
   getSettings: vi.fn(() => Promise.resolve(appSettings)),
   updateSettings: vi.fn((settings) => Promise.resolve(settings)),
-  agentStartSession: vi.fn(),
-  agentSendMessage: vi.fn(),
-  agentAbort: vi.fn(),
-  agentGetStatus: vi.fn(() => Promise.resolve({ available: false, running: false, streaming: false })),
-  agentSaveApiKey: vi.fn(),
-  agentDeleteApiKey: vi.fn(),
   getLibraryDocs: vi.fn(() => Promise.resolve([])),
   queryLibraryDocs: vi.fn(() => Promise.resolve({ items: [], hasMore: false, total: 0 })),
   addLibraryDoc: vi.fn(),
@@ -104,10 +90,6 @@ vi.mock('../features/settings/SettingsPage', () => ({
   SettingsPage: () => <section data-testid="settings-page" />,
 }))
 
-vi.mock('../features/agent/AgentPanel', () => ({
-  AgentPanel: () => <aside data-testid="agent-panel" />,
-}))
-
 class ResizeObserverMock {
   observe() {}
   unobserve() {}
@@ -150,10 +132,9 @@ describe('App', () => {
     render(<App />)
 
     expect(screen.queryByTitle('保存 (Ctrl+S)')).not.toBeInTheDocument()
-    await waitFor(() => expect(screen.getByTitle('导出')).toBeInTheDocument())
-    await act(async () => {
-      fireEvent.click(screen.getByTitle('导出'))
-    })
+    await waitFor(() => expect(screen.getByTitle('更多')).toBeInTheDocument())
+    fireEvent.click(screen.getByTitle('更多'))
+    fireEvent.click(await screen.findByRole('button', { name: '导出文档' }))
 
     expect(screen.getByRole('dialog', { name: '导出文档' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /导出 JSON 备份/ })).toBeInTheDocument()

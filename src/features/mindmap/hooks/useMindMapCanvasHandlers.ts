@@ -1,6 +1,5 @@
 import React from 'react'
 import type { Node, ReactFlowInstance } from 'reactflow'
-import { isAgentInsertionNodeId } from '../agentInsertionPreviewBuilder'
 
 interface MindMapCanvasHandlerOptions {
   flowInstanceRef: React.MutableRefObject<ReactFlowInstance | null>
@@ -22,7 +21,6 @@ export function useMindMapCanvasHandlers({
   closeContextMenu,
 }: MindMapCanvasHandlerOptions) {
   const handleNodeClick = React.useCallback((event: React.MouseEvent, node: Node) => {
-    if (isAgentInsertionNodeId(node.id)) return
     if (event.ctrlKey || event.metaKey) {
       const next = selectedNodeIds.includes(node.id)
         ? selectedNodeIds.filter((id) => id !== node.id)
@@ -38,13 +36,11 @@ export function useMindMapCanvasHandlers({
   }, [selectNode, selectedNodeIds, setSelectedNodeIds, startEditing])
 
   const handleNodeDoubleClick = React.useCallback((_event: React.MouseEvent, node: Node) => {
-    if (isAgentInsertionNodeId(node.id)) return
     startEditing(node.id)
   }, [startEditing])
 
   const handleNodeContextMenu = React.useCallback((event: React.MouseEvent, node: Node) => {
     event.preventDefault()
-    if (isAgentInsertionNodeId(node.id)) return
     openContextMenu(node.id, event.clientX, event.clientY)
   }, [openContextMenu])
 

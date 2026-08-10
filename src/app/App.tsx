@@ -4,8 +4,6 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels'
 import { Sidebar } from '../components/layout/Sidebar'
 import { ToastContainer, toast } from '../components/common/Toast'
-import { AgentPanel } from '../features/agent/AgentPanel'
-import { useAgentStore } from '../features/agent/agentStore'
 import { useDocumentStore } from '../features/document/documentStore'
 import { LibraryWorkspace } from '../features/library/LibraryWorkspace'
 import { mindMapExportController } from '../features/mindmap/mindMapExportController'
@@ -53,8 +51,6 @@ export const App: React.FC = () => {
   const settings = useSettingsStore((s) => s.settings)
   const updateSettings = useSettingsStore((s) => s.updateSettings)
   const activeWorkspaceView = useWorkspaceStore((s) => s.activeView)
-  const isAgentOpen = useAgentStore((s) => s.isOpen)
-  const setAgentOpen = useAgentStore((s) => s.setOpen)
   const workspaceItems = useServerWorkspaceStore((s) => s.items)
   const useVerticalSplit = useMediaQuery('(max-width: 900px) and (orientation: portrait)')
 
@@ -135,11 +131,9 @@ export const App: React.FC = () => {
             viewMode={viewMode}
             canUndo={canUndo}
             canRedo={canRedo}
-            isAgentOpen={isAgentOpen}
             onViewModeChange={setViewMode}
             onUndo={undo}
             onRedo={redo}
-            onToggleAgent={() => setAgentOpen(!isAgentOpen)}
             onOpenImport={() => setIsImportOpen(true)}
             onOpenExport={() => setIsExportOpen(true)}
           />
@@ -180,17 +174,6 @@ export const App: React.FC = () => {
                 )}
               </AnimatePresence>
             </div>
-            {isAgentOpen && (
-              <>
-                <button
-                  type="button"
-                  aria-label="关闭文档助理"
-                  className="fixed inset-0 z-40 bg-black/10 backdrop-blur-[1px] lg:hidden"
-                  onClick={() => setAgentOpen(false)}
-                />
-                <AgentPanel />
-              </>
-            )}
           </div>
         </main>
       </div>

@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom'
 import { Braces, ChevronLeft, Copy, MoreHorizontal, PanelBottomOpen, PanelLeftOpen, PanelRightOpen, PanelTopOpen, Plus, Scissors, Trash2, X } from 'lucide-react'
 import { Handle, NodeProps, Position, useStore } from 'reactflow'
 import { MindMapInlineEditor } from './MindMapInlineEditor'
-import type { AgentNodePreview } from '../agent/agentTypes'
 import { OutlineInlineContent } from '../outline/OutlineInlineContent'
 import type { NodeSummary, NodeTextFormat } from '../../types/document'
 import { useDocumentStore } from '../document/documentStore'
@@ -30,8 +29,6 @@ export interface MindMapNodeData {
   exportClean?: boolean
   dropState?: 'before' | 'child' | 'after' | null
   invalidDrop?: boolean
-  agentPreview?: AgentNodePreview
-  agentInsertion?: boolean
   editing: boolean
   format?: NodeTextFormat
   theme?: MindMapTheme
@@ -89,9 +86,6 @@ export const MindMapNode: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, se
   const isRoot = type === 'root'
   const hasChildren = data.childCount > 0
   const visualDepth = Math.min(data.depth, 3)
-  const isAgentDeleting = data.agentPreview?.kind === 'delete'
-  const isAgentMoving = data.agentPreview?.kind === 'move'
-  const agentTextPreview = data.agentPreview?.kind === 'update' ? data.agentPreview.text : undefined
   const imageUrls = data.format?.imageDataUrls ?? (data.format?.imageDataUrl ? [data.format.imageDataUrl] : [])
   const closeImagePreview = () => {
     setPreviewImage(null)
@@ -115,7 +109,7 @@ export const MindMapNode: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, se
       ? 'rounded-md border-[1.5px] px-3 py-2'
       : 'rounded-lg border-[1.5px] px-1.5 py-1'
   const idleSurface = isRoot
-    ? 'border-transparent bg-[var(--color-primary)] shadow-[0_3px_10px_rgba(86,69,212,0.18)] hover:border-[var(--color-primary)]'
+    ? 'border-transparent bg-[var(--color-primary)] shadow-[0_3px_10px_rgba(0,0,0,0.16)] hover:border-[var(--color-primary)]'
     : 'border-transparent bg-transparent hover:border-[var(--color-primary)]'
   const themeBackground = isRoot
     ? data.theme?.rootBackground
@@ -127,7 +121,7 @@ export const MindMapNode: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, se
   }, [])
 
   const requestEditing = () => {
-    if (data.exportClean || data.agentInsertion || editTimerRef.current !== null) return
+    if (data.exportClean || editTimerRef.current !== null) return
     editTimerRef.current = window.setTimeout(() => {
       editTimerRef.current = null
       data.onStartEditing(id)
@@ -138,20 +132,12 @@ export const MindMapNode: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, se
     <div
       data-testid={`mindmap-node-${id}`}
       className={`group relative w-max min-w-[44px] max-w-[650px] text-left transition-[border-color,background-color,box-shadow] duration-150 ${nodeSpacing} ${
-        isAgentDeleting
-          ? 'border-transparent bg-rose-50 ring-2 ring-rose-400/50'
-        : data.agentInsertion
-          ? 'border-transparent bg-emerald-50 ring-2 ring-emerald-400/50'
-        : agentTextPreview
-          ? 'border-transparent bg-emerald-50 ring-2 ring-emerald-400/50'
-        : isAgentMoving
-          ? 'border-transparent bg-sky-50 ring-2 ring-sky-400/50'
-        : data.activeMatch && !data.exportClean
+        data.activeMatch && !data.exportClean
           ? 'scale-[1.03] border-transparent bg-sky-50 ring-2 ring-sky-500/60'
         : data.editing && !data.exportClean
-          ? 'border-[var(--color-primary)] bg-transparent shadow-[0_4px_12px_rgba(86,69,212,0.10)]'
+          ? 'border-[var(--color-primary)] bg-transparent shadow-[0_4px_12px_rgba(0,0,0,0.10)]'
         : selected && !data.exportClean
-          ? `${isRoot ? 'bg-[var(--color-primary)]' : 'bg-transparent'} border-[var(--color-primary)] shadow-[0_3px_10px_rgba(86,69,212,0.08)]`
+          ? `${isRoot ? 'bg-[var(--color-primary)]' : 'bg-transparent'} border-[var(--color-primary)] shadow-[0_3px_10px_rgba(0,0,0,0.08)]`
         : data.matched && !data.exportClean
           ? 'border-transparent bg-sky-50 ring-2 ring-sky-300/60'
         : data.focused
@@ -164,7 +150,7 @@ export const MindMapNode: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, se
       }`}
       style={{ backgroundColor: data.format?.backgroundColor ?? themeBackground, color: data.format?.color ?? themeText }}
       onClick={(event) => {
-        if (!data.exportClean && !data.agentInsertion) data.onSelectNode(id, event.ctrlKey || event.metaKey)
+        if (!data.exportClean) data.onSelectNode(id, event.ctrlKey || event.metaKey)
         // React Flow can suppress dblclick while canvas interaction is locked,
         // but the second click still carries detail=2.
         if (event.detail === 2) requestEditing()
@@ -228,11 +214,7 @@ export const MindMapNode: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, se
               <div className="flex items-start gap-1.5" onClick={(event) => { event.stopPropagation(); const additive = event.ctrlKey || event.metaKey; data.onSelectNode(id, additive); if (!additive) requestEditing() }}>
                 {data.checked !== undefined && !data.exportClean && <button type="button" aria-label={data.checked ? '标记为未完成' : '标记为已完成'} className={`nodrag nopan mt-[3px] inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[3px] border text-[9px] ${data.checked ? 'border-indigo-500 bg-indigo-500 text-white' : 'border-zinc-400 bg-white'}`} onClick={(event) => { event.stopPropagation(); setNodeChecked(id, !data.checked) }}>{data.checked ? '✓' : ''}</button>}
                 <div data-mindmap-text-node-id={id} style={{ color: data.checked ? '#a1a1aa' : data.format?.color ?? themeText, fontSize: data.format?.fontSize, fontWeight: data.format?.bold ? 700 : undefined, fontStyle: data.format?.italic ? 'italic' : undefined, textDecoration: [data.format?.underline && 'underline', (data.format?.strike || data.checked) && 'line-through'].filter(Boolean).join(' ') || undefined }} className={`whitespace-pre-wrap break-words text-sm leading-[1.45] ${data.format?.code ? 'rounded bg-zinc-100 px-1.5 py-1 font-mono' : ''} ${
-                isAgentDeleting
-                  ? 'font-semibold text-rose-700 line-through'
-                  : agentTextPreview
-                    ? 'font-semibold text-zinc-400 line-through'
-                    : visualDepth === 0
+                visualDepth === 0
                       ? 'text-base font-bold text-white'
                       : visualDepth === 1
                         ? 'text-base font-normal text-zinc-900'
@@ -248,20 +230,6 @@ export const MindMapNode: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, se
                 </div>
               </div>
           )}
-              {agentTextPreview && (
-                <div className="whitespace-pre-wrap break-words text-xs font-semibold leading-relaxed text-emerald-700">
-                  {agentTextPreview}
-                </div>
-              )}
-              {data.agentInsertion && (
-                <div className="mt-0.5 text-[10px] font-medium text-emerald-600">将插入</div>
-              )}
-              {isAgentDeleting && (
-                <div className="mt-0.5 text-[10px] font-medium text-rose-500">将删除</div>
-              )}
-              {isAgentMoving && (
-                <div className="mt-0.5 text-[10px] font-medium text-sky-600">将移动</div>
-              )}
               {editingNote ? <textarea autoFocus aria-label="节点描述" value={noteDraft} placeholder="输入节点描述，Enter 完成" rows={1} className="nodrag nopan mt-1 block h-auto min-h-6 min-w-44 max-w-[320px] resize-none overflow-hidden border-0 border-l-2 border-indigo-400 bg-transparent py-0.5 pl-2 text-[11px] font-normal leading-relaxed text-zinc-600 outline-none [field-sizing:content]" onClick={(event) => event.stopPropagation()} onChange={(event) => setNoteDraft(event.target.value)} onBlur={() => { updateNodeNote(id, noteDraft); setEditingNote(false) }} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); updateNodeNote(id, noteDraft); setEditingNote(false) } if (event.key === 'Escape') { event.preventDefault(); setNoteDraft(data.note ?? ''); setEditingNote(false) } }} /> : data.note && <button type="button" className="nodrag nopan mt-0.5 block max-w-[320px] whitespace-pre-wrap border-l-2 border-indigo-300 pl-2 text-left text-[11px] font-normal leading-relaxed text-zinc-500" onClick={(event) => { event.stopPropagation(); setNoteDraft(data.note ?? ''); setEditingNote(true) }}>{data.note}</button>}
               {data.format?.table && <EditableNodeTable table={data.format.table} zoom={zoom} onChange={(table) => updateNodeFormatting(id, { table })} />}
               {imageUrls.length > 0 && <div className="nodrag nopan relative mt-2 block w-full max-w-[240px]" onClick={(event) => event.stopPropagation()}>

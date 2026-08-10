@@ -14,14 +14,6 @@ const baseSettings: AppSettings = {
   theme: 'system',
   focusMode: false,
   experimentalMindMapLayoutEngine: false,
-  agent: {
-    enabled: false,
-    provider: 'openai-compatible',
-    model: 'gpt-4.1',
-    baseUrl: 'https://api.openai.com/v1',
-    thinkingLevel: 'medium',
-    contextScope: 'currentDocument',
-  },
 }
 
 describe('SettingsPage', () => {

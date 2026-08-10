@@ -9,7 +9,6 @@ import type { AppSettings } from '../../types/settings'
 const settings: AppSettings = {
   autoSaveEnabled: true, autoSaveIntervalMs: 1500, defaultViewMode: 'outline', sidebarCollapsed: false,
   theme: 'system', focusMode: false, experimentalMindMapLayoutEngine: false,
-  agent: { enabled: false, provider: 'openai-compatible', model: 'gpt-4.1', baseUrl: 'https://api.openai.com/v1', thinkingLevel: 'medium', contextScope: 'currentDocument' },
 }
 
 vi.mock('../../services/siweiApi', () => ({

@@ -186,7 +186,7 @@ export const Sidebar: React.FC = () => {
           </button>
           {collapsedRecentOpen && <div className="absolute left-0 top-9 w-60 pt-2" onMouseEnter={keepCollapsedPreviewOpen} onMouseLeave={scheduleCollapsedPreviewClose}><div className="apple-material rounded-2xl p-3 text-[14px]">
             <div className="mb-2 text-xs text-zinc-500">最近编辑</div>
-            <div className="space-y-0.5">{recentDocuments.map((item) => <button key={item.id} type="button" className="flex h-9 w-full items-center gap-2 rounded-lg px-2 text-left text-sm text-[var(--color-slate)] hover:bg-[var(--color-tint-lavender)] hover:text-[var(--color-primary-deep)]" onClick={() => void openDocument(item.id)}><FileText size={13} className="text-[var(--color-stone)]" /><span className="truncate">{item.name}</span></button>)}</div>
+            <div className="space-y-0.5">{recentDocuments.map((item) => <button key={item.id} type="button" className="flex h-9 w-full items-center rounded-md px-2 text-left text-sm text-[var(--color-slate)] hover:bg-[var(--color-tint-lavender)] hover:text-[var(--color-ink)]" onClick={() => void openDocument(item.id)}><span className="truncate">{item.name}</span></button>)}</div>
           </div></div>}
         </div>
       </aside>
@@ -209,7 +209,7 @@ export const Sidebar: React.FC = () => {
           <Search size={14} className="shrink-0" />
           <input value={query} onChange={(event) => setQuery(event.target.value)} className="sidebar-search-input min-w-0 flex-1 bg-transparent text-sm text-zinc-700 outline-none" placeholder="搜索文档" aria-label="搜索文档" />
         </label>
-        <button type="button" aria-label="新建" onClick={() => setCreateMenuOpen((open) => !open)} className="ui-icon-button ui-icon-button-primary h-11 w-11" title="新建文档或文件夹"><Plus size={19} strokeWidth={2.4} /></button>
+        <button type="button" aria-label="新建" onClick={() => setCreateMenuOpen((open) => !open)} className="ui-icon-button ui-icon-button-primary sidebar-create-button h-10 w-10" title="新建文档或文件夹"><Plus size={18} strokeWidth={2.2} /></button>
         {createMenuOpen && <div className="ui-popover absolute right-3 top-12 z-40 w-40 p-1.5"><CreateMenuButton icon={FilePlus2} label="新建文档" onClick={() => { setDraft({ type: 'document', name: '', parentId: selectedFolderId }); setCreateMenuOpen(false) }} /><CreateMenuButton icon={FolderPlus} label="新建文件夹" onClick={() => { setDraft({ type: 'folder', name: '', parentId: selectedFolderId }); setCreateMenuOpen(false) }} /></div>}
       </div>
 
@@ -222,7 +222,7 @@ export const Sidebar: React.FC = () => {
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
         {draft && (
           <div className="mb-1 flex h-8 items-center gap-2 rounded-md bg-white px-2 shadow-sm dark:bg-zinc-900">
-            {draft.type === 'folder' ? <Folder size={14} className="text-amber-500" /> : <FileText size={14} className="text-indigo-500" />}
+            {draft.type === 'folder' && <Folder size={14} className="text-[var(--color-steel)]" />}
             <input autoFocus value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} onBlur={() => { if (!draft.name.trim()) setDraft(null) }} onKeyDown={(event) => { if (event.key === 'Enter') void commitDraft(); if (event.key === 'Escape') setDraft(null) }} className="min-w-0 flex-1 bg-transparent text-sm outline-none" placeholder={draft.type === 'folder' ? '文件夹名称' : '文档名称'} />
           </div>
         )}
@@ -257,7 +257,7 @@ export const Sidebar: React.FC = () => {
       })()}
 
       <div className="border-t border-zinc-200/70 p-2 dark:border-zinc-800">
-        <button type="button" onClick={() => setWorkspaceView('settings')} className={`flex h-10 w-full items-center gap-2 rounded-lg px-2.5 text-sm ${activeWorkspaceView === 'settings' ? 'bg-[var(--color-tint-lavender)] text-[var(--color-primary-deep)] dark:bg-indigo-950/40 dark:text-indigo-300' : 'text-[var(--color-slate)] hover:bg-white hover:text-[var(--color-ink)] dark:hover:bg-zinc-900 dark:hover:text-white'}`}>
+        <button type="button" onClick={() => setWorkspaceView('settings')} className={`flex h-10 w-full items-center gap-2 rounded-md px-2.5 text-sm ${activeWorkspaceView === 'settings' ? 'bg-[var(--color-tint-lavender)] font-medium text-[var(--color-ink)] dark:bg-zinc-800 dark:text-white' : 'text-[var(--color-slate)] hover:bg-white hover:text-[var(--color-ink)] dark:hover:bg-zinc-900 dark:hover:text-white'}`}>
           <Settings size={15} /> 设置
         </button>
       </div>
@@ -314,10 +314,10 @@ const DocumentTree: React.FC<{
     const active = isFolder ? selectedFolderId === item.id : currentDocumentId === item.id
     return (
       <React.Fragment key={item.id}>
-        <div className={`sidebar-tree-row group flex h-9 items-center rounded-lg pr-1 text-sm transition-colors ${active ? 'bg-[var(--color-tint-lavender)] font-medium text-[var(--color-primary-deep)] dark:bg-indigo-950/40 dark:text-indigo-300' : 'text-[var(--color-slate)] hover:bg-white hover:text-[var(--color-ink)] dark:text-zinc-400 dark:hover:bg-zinc-900'}`} style={{ paddingLeft: 6 + depth * 16 }}>
+        <div className={`sidebar-tree-row group flex h-9 items-center rounded-md pr-1 text-sm transition-colors ${active ? 'bg-[var(--color-tint-lavender)] font-medium text-[var(--color-ink)] dark:bg-zinc-800 dark:text-white' : 'text-[var(--color-slate)] hover:bg-white hover:text-[var(--color-ink)] dark:text-zinc-400 dark:hover:bg-zinc-900'}`} style={{ paddingLeft: 8 + depth * 16 }}>
           <button type="button" onClick={() => isFolder ? onToggle(item.id) : onOpenDocument(item.id)} className="flex min-w-0 flex-1 items-center gap-1.5 text-left">
-            {isFolder ? <ChevronRight size={12} className={`shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`} /> : <span className="w-3" />}
-            {isFolder ? (expanded ? <FolderOpen size={14} className="shrink-0 text-amber-500" /> : <Folder size={14} className="shrink-0 text-amber-500" />) : <FileText size={14} className="shrink-0 text-indigo-500" />}
+            {isFolder && <ChevronRight size={12} className={`shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`} />}
+            {isFolder && (expanded ? <FolderOpen size={14} className="shrink-0 text-[var(--color-steel)]" /> : <Folder size={14} className="shrink-0 text-[var(--color-steel)]" />)}
             {renameDraft?.id === item.id ? <input autoFocus value={renameDraft.name} aria-label={`重命名 ${item.name}`} className="min-w-0 flex-1 rounded border border-indigo-300 bg-white px-1 outline-none" onClick={(event) => event.stopPropagation()} onChange={(event) => onRenameDraftChange({ id: item.id, name: event.target.value })} onBlur={onCommitRename} onKeyDown={(event) => { if (event.key === 'Enter') onCommitRename(); if (event.key === 'Escape') onRenameDraftChange(null) }} /> : <span className="truncate">{item.name}</span>}
           </button>
           {isFolder && <button type="button" aria-label={`在 ${item.name} 中新建文档`} title="在当前文件夹中新建文档" onClick={(event) => { event.stopPropagation(); onCreateDocument(item.id) }} className="hidden h-6 w-6 items-center justify-center rounded text-zinc-500 hover:bg-zinc-200 group-hover:flex"><Plus size={13} /></button>}

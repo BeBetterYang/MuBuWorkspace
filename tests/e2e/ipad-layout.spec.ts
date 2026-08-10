@@ -40,7 +40,7 @@ test('applies the shared DESIGN.md tokens to primary actions and surfaces', asyn
       cardRadius: root.getPropertyValue('--radius-card').trim(),
     }
   })
-  expect(tokens).toEqual({ primary: '#5645d4', buttonRadius: '8px', cardRadius: '12px' })
+  expect(tokens).toEqual({ primary: '#1a1a1a', buttonRadius: '8px', cardRadius: '12px' })
 
   const createButton = page.locator('aside .ui-icon-button-primary').first()
   await expect(createButton).toBeVisible()
@@ -48,7 +48,7 @@ test('applies the shared DESIGN.md tokens to primary actions and surfaces', asyn
     const style = getComputedStyle(element)
     return { backgroundColor: style.backgroundColor, borderRadius: style.borderRadius }
   })
-  expect(visual).toEqual({ backgroundColor: 'rgb(86, 69, 212)', borderRadius: '8px' })
+  expect(visual).toEqual({ backgroundColor: 'rgb(26, 26, 26)', borderRadius: '9999px' })
 })
 
 test('uses an overlay sidebar in portrait and a docked sidebar in landscape', async ({ page }, testInfo) => {

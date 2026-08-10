@@ -9,7 +9,6 @@ import {
 } from './documentStoreHelpers'
 import { createDocumentHistoryController } from './documentStoreHistory'
 import { createDirtyStateSelector } from './documentStoreContext'
-import { createAgentIntegrationSlice } from './agentIntegration'
 import { createNodeMetadataSlice } from './slices/nodeMetadataSlice'
 import { createPersistenceSlice } from './slices/persistenceSlice'
 import { createUiSlice } from './slices/uiSlice'
@@ -103,8 +102,6 @@ export const useDocumentStore = create<DocumentState>((set, get) => {
     ...createTreeSlice(storeContext),
 
     ...createNodeMetadataSlice(storeContext),
-
-    ...createAgentIntegrationSlice(storeContext),
 
     ...createHistorySlice(storeContext),
   }

@@ -4,14 +4,12 @@ import { useDocumentStore } from '../document/documentStore'
 import { toast } from '../../components/common/Toast'
 import { NodeNoteEditor } from './NodeNoteEditor'
 import { NodeTagEditor } from './NodeTagEditor'
-import { AgentInsertionPreviewRows } from './components/AgentInsertionPreviewRows'
 import { ButtonToggle, KnitGrip } from './components/OutlineNodeControls'
 import { OutlineNodeTextContent } from './components/OutlineNodeTextContent'
 import { SlashCommandMenu } from './components/SlashCommandMenu'
 import { useNodeDragDrop } from './hooks/useNodeDragDrop'
 import { useNodeKeyboardHandling } from './hooks/useNodeKeyboardHandling'
 import { useSlashCommandMenu } from './hooks/useSlashCommandMenu'
-import type { AgentInsertionPreview, AgentNodePreview } from '../agent/agentTypes'
 
 interface OutlineNodeItemProps {
   node: OutlineNode
@@ -21,8 +19,6 @@ interface OutlineNodeItemProps {
   isSelected: boolean
   isMultiSelected?: boolean
   isCollapsed: boolean
-  agentPreview?: AgentNodePreview
-  agentInsertions?: AgentInsertionPreview[]
   onNavigate: (direction: 'up' | 'down') => void
   onNodeClick?: (event: React.MouseEvent, nodeId: string) => void
   onBatchMove?: (direction: 'up' | 'down') => boolean
@@ -40,8 +36,6 @@ export const OutlineNodeItem: React.FC<OutlineNodeItemProps> = ({
   isSelected,
   isMultiSelected = false,
   isCollapsed,
-  agentPreview,
-  agentInsertions = [],
   onNavigate,
   onNodeClick,
   onBatchMove,
@@ -158,10 +152,6 @@ export const OutlineNodeItem: React.FC<OutlineNodeItemProps> = ({
     }
   }
 
-  const isAgentDeleting = agentPreview?.kind === 'delete'
-  const isAgentMoving = agentPreview?.kind === 'move'
-  const agentTextPreview = agentPreview?.kind === 'update' ? agentPreview.text : undefined
-
   const siblingIndex = path[path.length - 1] ?? 0
   const { handlePointerDown, isDragging, isDropTarget, dragOffset, previewShiftY } = useNodeDragDrop({
     nodeId: node.id,
@@ -187,13 +177,7 @@ export const OutlineNodeItem: React.FC<OutlineNodeItemProps> = ({
             : { backgroundColor: node.format?.backgroundColor }
       }
       className={`group relative flex min-h-9 items-center rounded-lg border px-2 py-1 transition-[background-color,border-color,color,box-shadow,opacity,transform] duration-200 ${
-        isAgentDeleting
-          ? 'bg-rose-50/80 border-rose-200 text-rose-800'
-          : agentTextPreview
-            ? 'bg-emerald-50/80 border-emerald-200 text-zinc-900 ring-1 ring-emerald-200/70'
-          : isAgentMoving
-            ? 'bg-[var(--color-tint-sky)] border-[#9fc4e5] text-zinc-900 ring-1 ring-[#9fc4e5]/70'
-          : isSelected || isMultiSelected
+        isSelected || isMultiSelected
           ? 'bg-[var(--color-tint-lavender)] border-solid border-[var(--color-primary)]/60 text-zinc-900 shadow-sm'
           : isFocusedNode
             ? 'bg-[var(--color-tint-yellow)] border-[#e6cf72] text-zinc-900 shadow-sm'
@@ -256,7 +240,7 @@ export const OutlineNodeItem: React.FC<OutlineNodeItemProps> = ({
 
       {/* Text Node */}
       <div className="flex-1 min-w-0 pl-1.5">
-        {isSelected && !agentTextPreview ? (
+        {isSelected ? (
           <input
             ref={inputRef}
             type="text"
@@ -279,8 +263,8 @@ export const OutlineNodeItem: React.FC<OutlineNodeItemProps> = ({
           />
         ) : (
           <div className={`${node.format?.code ? 'rounded bg-zinc-100 px-1.5 py-1 font-mono' : ''} ${node.format?.quote ? 'border-l-2 border-indigo-400 pl-2' : ''}`} style={{ color: node.format?.color ?? themeText, fontSize: node.format?.fontSize, fontWeight: node.format?.bold ? 700 : undefined, fontStyle: node.format?.italic ? 'italic' : undefined, textDecoration: [node.format?.underline && 'underline', node.format?.strike && 'line-through'].filter(Boolean).join(' ') || undefined }}>
-            {node.format?.link ? <a href={node.format.link} target="_blank" rel="noreferrer" className="underline decoration-zinc-400 underline-offset-2" onClick={(event) => event.stopPropagation()}><OutlineNodeTextContent text={node.text} isAgentDeleting={isAgentDeleting} isAgentMoving={isAgentMoving} agentTextPreview={agentTextPreview} /></a> :
-            <OutlineNodeTextContent text={node.text} isAgentDeleting={isAgentDeleting} isAgentMoving={isAgentMoving} agentTextPreview={agentTextPreview} />
+            {node.format?.link ? <a href={node.format.link} target="_blank" rel="noreferrer" className="underline decoration-zinc-400 underline-offset-2" onClick={(event) => event.stopPropagation()}><OutlineNodeTextContent text={node.text} /></a> :
+            <OutlineNodeTextContent text={node.text} />
             }
           </div>
         )}
@@ -306,11 +290,6 @@ export const OutlineNodeItem: React.FC<OutlineNodeItemProps> = ({
         />
       )}
     </div>
-    <AgentInsertionPreviewRows
-      depth={depth}
-      parentNodeId={node.id}
-      insertions={agentInsertions}
-    />
     </>
   )
 }

@@ -1,7 +1,6 @@
 import React from 'react'
 import type { Node } from 'reactflow'
 
-import { isAgentInsertionNodeId } from '../agentInsertionPreviewBuilder'
 import type { MindMapNodeData } from '../MindMapNode'
 import { useMindMapExport } from '../useMindMapExport'
 import { useMindMapExportRegistration } from '../useMindMapExportRegistration'
@@ -22,7 +21,7 @@ export function useMindMapExportController({
   const { status: exportStatus, exportMindMap } = useMindMapExport({
     documentTitle,
     getExportElement: cleanExportElement,
-    hasExportableContent: () => nodes.some((node) => !isAgentInsertionNodeId(node.id)),
+    hasExportableContent: () => nodes.length > 0,
   })
 
   const handleExport = React.useCallback(async (format: 'png' | 'pdf') => {

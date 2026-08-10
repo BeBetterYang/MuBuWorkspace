@@ -81,7 +81,7 @@ export function createResult(
     return { nodes, edges }
   }
 
-  // 只有持久模式写回布局状态；搜索、聚焦和 Agent 预览等临时视图不污染用户保存的坐标。
+  // 只有持久模式写回布局状态；搜索和聚焦等临时视图不污染用户保存的坐标。
   return {
     nodes,
     edges,

@@ -3,7 +3,6 @@ import { Connection, ReactFlowInstance, useEdgesState, useNodesState } from 'rea
 import 'reactflow/dist/style.css'
 
 import { useDocumentStore } from '../document/documentStore'
-import { useAgentStore } from '../agent/agentStore'
 import { useNodeContextMenuController } from '../document/useNodeContextMenuController'
 import { MindMapLayoutDiagnostics } from './layoutEngine'
 import { MindMapNodeData } from './MindMapNode'
@@ -34,7 +33,6 @@ import { createMindMapLayoutState, getMindMapLayoutForStrategy } from './mindMap
 export const MindMapView: React.FC = () => {
   const currentDoc = useDocumentStore((s) => s.currentDoc)
   const collapsedNodeIds = useDocumentStore((s) => s.collapsedNodeIds)
-  const pendingAgentPlan = useAgentStore((s) => s.pendingPlan)
   const selectedNodeId = useDocumentStore((s) => s.selectedNodeId)
   const selectedNodeIds = useDocumentStore((s) => s.outlineSelection.selectedNodeIds)
   const setOutlineSelection = useDocumentStore((s) => s.setOutlineSelection)
@@ -240,7 +238,6 @@ export const MindMapView: React.FC = () => {
 
   useMindMapLayoutComputation({
     currentDoc,
-    pendingAgentPlan,
     collapsedNodeIds,
     validFocusRootNodeId,
     exportClean,

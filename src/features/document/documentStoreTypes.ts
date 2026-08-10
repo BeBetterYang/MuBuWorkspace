@@ -11,7 +11,6 @@ import type {
   NodeSummary,
   OutlineDocument,
 } from '../../types/document'
-import type { AgentChangePlan, AgentMindMapInsertNodesParams } from '../agent/agentTypes'
 import type { CheckedFilter, OutlineFilterState } from '../filter/filterUtils'
 
 export type ViewMode = 'outline' | 'mindmap' | 'split'
@@ -113,11 +112,6 @@ export interface DocumentState {
   setFilterChecked: (checked: CheckedFilter) => void
   clearFilters: () => void
   focusNode: (nodeId: string) => void
-  applyAgentChangePlan: (plan: AgentChangePlan) => { ok: true } | { ok: false; error: string }
-  insertAgentMindMapNodes: (
-    params: AgentMindMapInsertNodesParams,
-  ) => { ok: true; insertedNodeIds: string[] } | { ok: false; error: string }
-
   undo: () => void
   redo: () => void
   beginTextEditSession: (nodeId: string) => void
