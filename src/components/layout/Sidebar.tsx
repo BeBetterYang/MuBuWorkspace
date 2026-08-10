@@ -180,7 +180,7 @@ export const Sidebar: React.FC = () => {
   if (isCollapsed) {
     return (
       <aside className="relative h-full w-0 shrink-0 overflow-visible">
-        <div className="safe-floating-top absolute left-[calc(0.25rem+var(--safe-left))] z-[90]" onMouseEnter={keepCollapsedPreviewOpen} onMouseLeave={scheduleCollapsedPreviewClose}>
+        <div className="absolute left-[calc(0.25rem+var(--safe-left))] top-1/2 z-[130] -translate-y-1/2" onMouseEnter={keepCollapsedPreviewOpen} onMouseLeave={scheduleCollapsedPreviewClose}>
           <button type="button" onClick={() => void updateSettings({ sidebarCollapsed: false })} className="flex h-7 w-7 items-center justify-center rounded bg-transparent text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900" title="展开侧边栏 Ctrl + \">
             {collapsedRecentOpen ? <ChevronRight size={16} /> : <Menu size={16} />}
           </button>
@@ -194,7 +194,7 @@ export const Sidebar: React.FC = () => {
   }
 
   return (
-    <aside className="relative flex h-full w-[270px] shrink-0 flex-col border-r border-[var(--color-hairline)] bg-[var(--color-surface)] pb-[var(--safe-bottom)] pt-[var(--safe-top)] text-[14px] text-[var(--color-charcoal)] dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 max-[900px]:fixed max-[900px]:inset-y-0 max-[900px]:left-0 max-[900px]:z-[90] max-[900px]:h-[100dvh] max-[900px]:w-[min(320px,88vw)] max-[900px]:shadow-[var(--shadow-modal)] min-[901px]:pb-0 min-[901px]:pt-0">
+    <aside className="relative flex h-full w-[270px] shrink-0 flex-col border-r border-[var(--color-hairline)] bg-[var(--color-surface)] pb-[var(--safe-bottom)] pt-[var(--safe-top)] text-[14px] text-[var(--color-charcoal)] dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 max-[900px]:fixed max-[900px]:inset-y-0 max-[900px]:left-0 max-[900px]:z-[120] max-[900px]:h-[100dvh] max-[900px]:w-[min(320px,88vw)] max-[900px]:shadow-[var(--shadow-modal)] min-[901px]:pb-0 min-[901px]:pt-0">
       <div className="flex h-12 items-center gap-2 px-3">
         <div className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-200 text-[10px] text-zinc-600">思</div>
         <span className="text-xs font-medium">?</span><ChevronDown size={13} className="text-zinc-500" />

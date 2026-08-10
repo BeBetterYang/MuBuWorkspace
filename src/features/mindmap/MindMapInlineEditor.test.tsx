@@ -52,7 +52,7 @@ describe('MindMapInlineEditor', () => {
 
     expect(input).toHaveClass('nodrag')
     expect(input).toHaveClass('nopan')
-    expect(input).toHaveClass('w-auto', 'max-w-[626px]', '[field-sizing:content]')
+    expect(input).toHaveClass('w-auto', 'max-w-[556px]', '[field-sizing:content]')
 
     fireEvent.pointerDown(input)
     fireEvent.mouseDown(input)

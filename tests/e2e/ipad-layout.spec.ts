@@ -69,6 +69,21 @@ test('keeps the sidebar docked at compact landscape widths', async ({ page }) =>
   await expect(page.getByRole('button', { name: '关闭侧边栏' })).toBeHidden()
 })
 
+test('reopens the sidebar after it has been collapsed', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
+
+  const collapseButton = page.getByTitle('收起侧栏')
+  if (await collapseButton.isVisible()) await collapseButton.click()
+
+  const expandButton = page.getByTitle('展开侧边栏 Ctrl + \\')
+  await expect(expandButton).toBeVisible()
+  const expandBox = await expandButton.boundingBox()
+  expect(expandBox).not.toBeNull()
+  expect(Math.abs(expandBox!.y + expandBox!.height / 2 - (await page.evaluate(() => window.innerHeight)) / 2)).toBeLessThanOrEqual(2)
+  await expandButton.click()
+  await expect(page.getByRole('textbox', { name: '搜索文档' })).toBeVisible()
+})
+
 test('opens the theme panel without clipping it inside the canvas toolbar', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' })
   const closeSidebar = page.getByRole('button', { name: '关闭侧边栏' })

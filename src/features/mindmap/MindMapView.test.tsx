@@ -467,9 +467,9 @@ describe('MindMapView', () => {
     expect(useDocumentStore.getState().currentDoc?.root.children[0].summary?.note).toBe('概要描述内容')
   })
 
-  it('uses the 650px node cap and omits the minimap preview', () => {
+  it('uses the 580px node cap and omits the minimap preview', () => {
     render(<MindMapView />)
-    expect(screen.getByTestId('mindmap-node-node-2')).toHaveClass('max-w-[650px]')
+    expect(screen.getByTestId('mindmap-node-node-2')).toHaveClass('max-w-[580px]')
     expect(screen.queryByTestId('flow-minimap')).not.toBeInTheDocument()
   })
 
