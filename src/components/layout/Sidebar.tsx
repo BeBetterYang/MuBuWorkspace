@@ -194,7 +194,7 @@ export const Sidebar: React.FC = () => {
   }
 
   return (
-    <aside className="relative flex h-full w-[270px] shrink-0 flex-col border-r border-[var(--color-hairline)] bg-[var(--color-surface)] pb-[var(--safe-bottom)] pt-[var(--safe-top)] text-[14px] text-[var(--color-charcoal)] dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-[90] max-lg:h-[100dvh] max-lg:w-[min(320px,88vw)] max-lg:shadow-[var(--shadow-modal)] lg:pb-0 lg:pt-0">
+    <aside className="relative flex h-full w-[270px] shrink-0 flex-col border-r border-[var(--color-hairline)] bg-[var(--color-surface)] pb-[var(--safe-bottom)] pt-[var(--safe-top)] text-[14px] text-[var(--color-charcoal)] dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 max-[900px]:fixed max-[900px]:inset-y-0 max-[900px]:left-0 max-[900px]:z-[90] max-[900px]:h-[100dvh] max-[900px]:w-[min(320px,88vw)] max-[900px]:shadow-[var(--shadow-modal)] min-[901px]:pb-0 min-[901px]:pt-0">
       <div className="flex h-12 items-center gap-2 px-3">
         <div className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-200 text-[10px] text-zinc-600">思</div>
         <span className="text-xs font-medium">?</span><ChevronDown size={13} className="text-zinc-500" />

@@ -115,7 +115,7 @@ export const App: React.FC = () => {
         <button
           type="button"
           aria-label="关闭侧边栏"
-          className="fixed inset-0 z-[80] bg-black/10 backdrop-blur-[1px] lg:hidden"
+          className="fixed inset-0 z-[80] bg-black/10 backdrop-blur-[1px] min-[901px]:hidden"
           onClick={() => void updateSettings({ sidebarCollapsed: true })}
         />
       )}

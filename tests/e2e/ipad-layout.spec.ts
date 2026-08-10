@@ -59,6 +59,16 @@ test('uses an overlay sidebar in portrait and a docked sidebar in landscape', as
   expect(position).toBe(testInfo.project.name === 'ipad-portrait' ? 'fixed' : 'relative')
 })
 
+test('keeps the sidebar docked at compact landscape widths', async ({ page }) => {
+  await page.setViewportSize({ width: 1000, height: 698 })
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
+
+  const sidebar = page.locator('aside').first()
+  await expect(sidebar).toBeVisible()
+  await expect(sidebar).toHaveCSS('position', 'relative')
+  await expect(page.getByRole('button', { name: '关闭侧边栏' })).toBeHidden()
+})
+
 test('opens the theme panel without clipping it inside the canvas toolbar', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' })
   const closeSidebar = page.getByRole('button', { name: '关闭侧边栏' })
