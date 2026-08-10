@@ -345,10 +345,11 @@ describe('MindMapView', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '编辑描述' }))
     const description = screen.getByRole('textbox', { name: '节点描述' })
+    expect(description).toHaveClass('mindmap-inline-editor', 'border-0', 'focus-visible:outline-none')
     fireEvent.change(description, { target: { value: '节点内描述' } })
     fireEvent.keyDown(description, { key: 'Enter' })
     expect(useDocumentStore.getState().currentDoc?.root.children[1].note).toBe('节点内描述')
-    expect(screen.getByRole('button', { name: '节点内描述' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '节点内描述' })).toHaveClass('min-h-7', 'w-full')
   })
 
   it('adds a table inline and only removes it after confirmation', () => {
@@ -460,6 +461,7 @@ describe('MindMapView', () => {
       format: { bold: true },
     })
     fireEvent.click(screen.getByRole('button', { name: '编辑描述' }))
+    expect(screen.getByRole('textbox', { name: '概要描述' })).toHaveClass('mindmap-inline-editor', 'border-0')
     fireEvent.change(screen.getByRole('textbox', { name: '概要描述' }), { target: { value: '概要描述内容' } })
     fireEvent.keyDown(screen.getByRole('textbox', { name: '概要描述' }), { key: 'Enter' })
     expect(useDocumentStore.getState().currentDoc?.root.children[0].summary?.note).toBe('概要描述内容')
