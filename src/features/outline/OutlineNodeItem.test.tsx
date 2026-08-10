@@ -86,6 +86,17 @@ describe('OutlineNodeItem', () => {
     expect(displayText.parentElement?.parentElement).toHaveStyle({ color: '#24452B' })
   })
 
+  it('renders the selected outline title as a borderless inline editor', () => {
+    render(<OutlineEditor />)
+
+    expect(document.querySelector('[data-node-id="node-2"] input')).toHaveClass(
+      'outline-inline-editor',
+      'border-0',
+      'shadow-none',
+      'focus-visible:outline-none',
+    )
+  })
+
   it('opens the shared node context menu from an outline node', () => {
     render(<OutlineEditor />)
 

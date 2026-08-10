@@ -88,7 +88,10 @@ select:focus-visible {
 
 .mindmap-inline-editor,
 .mindmap-inline-editor:focus,
-.mindmap-inline-editor:focus-visible {
+.mindmap-inline-editor:focus-visible,
+.outline-inline-editor,
+.outline-inline-editor:focus,
+.outline-inline-editor:focus-visible {
   appearance: none;
   border: 0;
   outline: 0;

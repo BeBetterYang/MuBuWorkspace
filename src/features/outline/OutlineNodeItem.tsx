@@ -251,7 +251,7 @@ export const OutlineNodeItem: React.FC<OutlineNodeItemProps> = ({
             onKeyDown={handleKeyDown}
             onCompositionStart={() => setIsComposing(true)}
             onCompositionEnd={() => setIsComposing(false)}
-            className="w-full bg-transparent text-sm font-medium text-zinc-900 outline-none border-none p-0 focus:ring-0 placeholder-zinc-400"
+            className="outline-inline-editor w-full border-0 bg-transparent p-0 text-sm font-medium text-zinc-900 shadow-none outline-none placeholder-zinc-400 focus:border-0 focus:outline-none focus:ring-0 focus-visible:outline-none"
             style={{
               color: node.format?.color ?? themeText,
               fontSize: node.format?.fontSize,
