@@ -296,12 +296,18 @@ export const MindMapView: React.FC = () => {
     }
     if (readyLayoutKeyRef.current === layoutViewKey) return
     setCanvasReady(false)
-    const timer = window.setTimeout(() => {
-      readyLayoutKeyRef.current = layoutViewKey
-      setCanvasReady(true)
-    }, 90)
-    return () => window.clearTimeout(timer)
-  }, [layoutViewKey, measuredNodeSizeSignature])
+    let settleFrame = 0
+    const measureFrame = window.requestAnimationFrame(() => {
+      settleFrame = window.requestAnimationFrame(() => {
+        readyLayoutKeyRef.current = layoutViewKey
+        setCanvasReady(true)
+      })
+    })
+    return () => {
+      window.cancelAnimationFrame(measureFrame)
+      if (settleFrame) window.cancelAnimationFrame(settleFrame)
+    }
+  }, [layoutViewKey])
 
   React.useEffect(() => {
     const previous = previousEditingNodeIdRef.current

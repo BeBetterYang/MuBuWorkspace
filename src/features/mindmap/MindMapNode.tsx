@@ -1,7 +1,7 @@
 import React from 'react'
 import { createPortal } from 'react-dom'
 import { Braces, ChevronLeft, Copy, MoreHorizontal, PanelBottomOpen, PanelLeftOpen, PanelRightOpen, PanelTopOpen, Plus, Scissors, Trash2, X } from 'lucide-react'
-import { Handle, NodeProps, Position, useStore } from 'reactflow'
+import { Handle, NodeProps, Position } from 'reactflow'
 import { MindMapInlineEditor } from './MindMapInlineEditor'
 import { OutlineInlineContent } from '../outline/OutlineInlineContent'
 import type { NodeSummary, NodeTextFormat } from '../../types/document'
@@ -72,8 +72,7 @@ function renderFormattedText(text: string, format?: NodeTextFormat) {
   })}</>
 }
 
-export const MindMapNode: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, selected, type }) => {
-  const zoom = useStore((state) => state.transform[2]) || 1
+const MindMapNodeComponent: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, selected, type }) => {
   const setNodeChecked = useDocumentStore((state) => state.setNodeChecked)
   const updateNodeFormatting = useDocumentStore((state) => state.updateNodeFormatting)
   const updateNodeNote = useDocumentStore((state) => state.updateNodeNote)
@@ -231,13 +230,13 @@ export const MindMapNode: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, se
               </div>
           )}
               {editingNote ? <textarea autoFocus aria-label="节点描述" value={noteDraft} placeholder="输入节点描述，Enter 完成" rows={1} className="mindmap-inline-editor nodrag nopan mt-0.5 block h-auto min-h-7 w-full min-w-44 max-w-[320px] resize-none overflow-hidden whitespace-pre-wrap border-0 bg-transparent px-0 py-1 text-[11px] font-normal leading-relaxed text-zinc-600 shadow-none outline-none [field-sizing:content] focus:outline-none focus:ring-0 focus-visible:outline-none" onClick={(event) => event.stopPropagation()} onChange={(event) => setNoteDraft(event.target.value)} onBlur={() => { updateNodeNote(id, noteDraft); setEditingNote(false) }} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); updateNodeNote(id, noteDraft); setEditingNote(false) } if (event.key === 'Escape') { event.preventDefault(); setNoteDraft(data.note ?? ''); setEditingNote(false) } }} /> : data.note && <button type="button" className="nodrag nopan mt-0.5 block min-h-7 w-full min-w-44 max-w-[320px] whitespace-pre-wrap border-l-2 border-indigo-300 py-1 pl-2 pr-2 text-left text-[11px] font-normal leading-relaxed text-zinc-500" onClick={(event) => { event.stopPropagation(); setNoteDraft(data.note ?? ''); setEditingNote(true) }}>{data.note}</button>}
-              {data.format?.table && <EditableNodeTable table={data.format.table} zoom={zoom} onChange={(table) => updateNodeFormatting(id, { table })} />}
+              {data.format?.table && <EditableNodeTable table={data.format.table} onChange={(table) => updateNodeFormatting(id, { table })} />}
               {imageUrls.length > 0 && <div className="nodrag nopan relative mt-2 block w-full max-w-[240px]" onClick={(event) => event.stopPropagation()}>
                 <div className={`grid gap-2 ${imageUrls.length === 1 ? 'grid-cols-1' : imageUrls.length < 3 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                   {imageUrls.map((src, index) => <div key={`${src.slice(0, 24)}-${index}`} className="group/image relative">
                     <button type="button" className={`${imageUrls.length === 1 ? 'block w-full max-w-full' : 'aspect-square w-full min-w-0'} overflow-hidden rounded-md bg-zinc-100 transition ${selectedImageIndex === index ? 'ring-2 ring-indigo-500 ring-offset-1' : 'hover:ring-1 hover:ring-indigo-300'}`} onClick={(event) => { event.stopPropagation(); setSelectedImageIndex(index); setPreviewImage(src) }} onContextMenu={(event) => { event.preventDefault(); event.stopPropagation(); setSelectedImageIndex(index); setImageMenu(index) }}><img src={src} alt={`节点图片 ${index + 1}`} className={imageUrls.length === 1 ? 'block h-auto max-h-[180px] w-full max-w-full object-contain' : 'h-full w-full object-cover'} /></button>
-                    <button type="button" aria-label={`打开第 ${index + 1} 张图片操作`} className={`absolute right-1 top-1 flex h-4 w-6 items-center justify-center rounded-full bg-zinc-600/90 text-white shadow-sm transition hover:bg-zinc-800 ${selectedImageIndex === index ? 'opacity-100' : 'opacity-0 group-hover/image:opacity-100'}`} style={{ transform: `scale(${1 / zoom})`, transformOrigin: 'top right' }} onClick={(event) => { event.stopPropagation(); setSelectedImageIndex(index); setImageMenu(imageMenu === index ? null : index) }}><MoreHorizontal size={13} /></button>
-                    {imageMenu === index && <div className="absolute left-full top-0 z-[80] ml-2 w-24 rounded-lg border border-zinc-200 bg-white p-1 text-xs text-zinc-700 shadow-xl" style={{ transform: `scale(${1 / zoom})`, transformOrigin: 'top left' }} onMouseLeave={() => setImageMenu(null)}>
+                    <button type="button" aria-label={`打开第 ${index + 1} 张图片操作`} className={`absolute right-1 top-1 flex h-4 w-6 items-center justify-center rounded-full bg-zinc-600/90 text-white shadow-sm transition hover:bg-zinc-800 ${selectedImageIndex === index ? 'opacity-100' : 'opacity-0 group-hover/image:opacity-100'}`} style={{ transform: 'scale(var(--mindmap-inverse-zoom, 1))', transformOrigin: 'top right' }} onClick={(event) => { event.stopPropagation(); setSelectedImageIndex(index); setImageMenu(imageMenu === index ? null : index) }}><MoreHorizontal size={13} /></button>
+                    {imageMenu === index && <div className="absolute left-full top-0 z-[80] ml-2 w-24 rounded-lg border border-zinc-200 bg-white p-1 text-xs text-zinc-700 shadow-xl" style={{ transform: 'scale(var(--mindmap-inverse-zoom, 1))', transformOrigin: 'top left' }} onMouseLeave={() => setImageMenu(null)}>
                       <ImageMenuButton icon={<Copy size={14} />} label="复制" onClick={() => { void copyImage(src); setImageMenu(null) }} />
                       <ImageMenuButton icon={<Scissors size={14} />} label="剪切" onClick={() => void copyImage(src).finally(() => { updateNodeFormatting(id, { imageDataUrls: imageUrls.filter((_, itemIndex) => itemIndex !== index), imageDataUrl: undefined }); setSelectedImageIndex(null); setImageMenu(null) })} />
                       <ImageMenuButton icon={<Trash2 size={14} />} label="删除" danger onClick={() => { updateNodeFormatting(id, { imageDataUrls: imageUrls.filter((_, itemIndex) => itemIndex !== index), imageDataUrl: undefined }); setSelectedImageIndex(null); setImageMenu(null) }} />
@@ -284,7 +283,7 @@ export const MindMapNode: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, se
         </button>
       )}
 
-      {!data.exportClean && data.summary && data.summaryOwnerId && <MindMapSummary ownerId={data.summaryOwnerId} summary={data.summary} selected={Boolean(data.summarySelected)} top={data.summaryTop} height={data.summaryHeight} side={data.summarySide} zoom={zoom} theme={data.theme} />}
+      {!data.exportClean && data.summary && data.summaryOwnerId && <MindMapSummary ownerId={data.summaryOwnerId} summary={data.summary} selected={Boolean(data.summarySelected)} top={data.summaryTop} height={data.summaryHeight} side={data.summarySide} theme={data.theme} />}
 
       {previewImage && createPortal(<div className="nodrag nopan fixed inset-0 z-[200] flex items-center justify-center bg-black/75 p-8" onClick={(event) => { event.stopPropagation(); closeImagePreview() }}><button type="button" aria-label="关闭大图" className="absolute right-6 top-6 rounded-full bg-white/15 p-2 text-white transition hover:bg-white/25" onClick={(event) => { event.stopPropagation(); closeImagePreview() }}><X size={22} /></button><img src={previewImage} alt="图片大图预览" className="max-h-full max-w-full object-contain" onClick={(event) => event.stopPropagation()} /></div>, document.body)}
     </div>
@@ -293,7 +292,7 @@ export const MindMapNode: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, se
 
 const ImageMenuButton: React.FC<{ icon: React.ReactNode; label: string; danger?: boolean; onClick: () => void }> = ({ icon, label, danger, onClick }) => <button type="button" className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left hover:bg-zinc-100 ${danger ? 'text-rose-600' : ''}`} onClick={(event) => { event.stopPropagation(); onClick() }}>{icon}{label}</button>
 
-const MindMapSummary: React.FC<{ ownerId: string; summary: NodeSummary; selected: boolean; top?: number; height?: number; side?: 'left' | 'right'; zoom: number; theme?: MindMapTheme }> = ({ ownerId, summary, selected, top = -4, height = 44, side = 'right', zoom, theme }) => {
+const MindMapSummary: React.FC<{ ownerId: string; summary: NodeSummary; selected: boolean; top?: number; height?: number; side?: 'left' | 'right'; theme?: MindMapTheme }> = ({ ownerId, summary, selected, top = -4, height = 44, side = 'right', theme }) => {
   const updateNodeSummary = useDocumentStore((state) => state.updateNodeSummary)
   const [editing, setEditing] = React.useState(false)
   const [draft, setDraft] = React.useState(summary.text)
@@ -341,8 +340,8 @@ const MindMapSummary: React.FC<{ ownerId: string; summary: NodeSummary; selected
         <div data-mindmap-text-node-id={`summary:${ownerId}`} className="whitespace-pre-wrap break-words text-sm leading-[1.45]" style={{ color: summary.checked ? '#a1a1aa' : summary.format?.color, fontSize: summary.format?.fontSize, fontWeight: summary.format?.bold ? 700 : undefined, fontStyle: summary.format?.italic ? 'italic' : undefined, textDecoration: [summary.format?.underline && 'underline', (summary.format?.strike || summary.checked) && 'line-through'].filter(Boolean).join(' ') || undefined }}>{summary.format?.link ? <a href={summary.format.link} target="_blank" rel="noreferrer" className="underline underline-offset-2" onClick={(event) => event.stopPropagation()}>{renderFormattedText(summary.text, summary.format)}</a> : renderFormattedText(summary.text, summary.format)}</div>
       </div>}
       {editingNote ? <textarea autoFocus aria-label="概要描述" value={noteDraft} rows={1} className="mindmap-inline-editor mt-0.5 block min-h-7 w-full resize-none overflow-hidden whitespace-pre-wrap border-0 bg-transparent px-0 py-1 text-[11px] leading-relaxed text-zinc-500 shadow-none outline-none [field-sizing:content] focus:outline-none focus:ring-0 focus-visible:outline-none" onClick={(event) => event.stopPropagation()} onChange={(event) => setNoteDraft(event.target.value)} onBlur={() => { updateSummary({ note: noteDraft }); setEditingNote(false) }} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); updateSummary({ note: noteDraft }); setEditingNote(false) } }} /> : summary.note && <button type="button" className="mt-0.5 block min-h-7 w-full whitespace-pre-wrap border-l-2 border-indigo-300 py-1 pl-2 pr-2 text-left text-[11px] text-zinc-500" onClick={(event) => { event.stopPropagation(); setEditingNote(true) }}>{summary.note}</button>}
-      {summary.format?.table && <EditableNodeTable table={summary.format.table} zoom={zoom} onChange={(table) => updateFormat({ table })} />}
-      {imageUrls.length > 0 && <div className="relative mt-2 block w-full max-w-[216px]" onClick={(event) => event.stopPropagation()}><div className={`grid gap-2 ${imageUrls.length === 1 ? 'grid-cols-1' : imageUrls.length < 3 ? 'grid-cols-2' : 'grid-cols-3'}`}>{imageUrls.map((src, index) => <div key={`${src.slice(0, 24)}-${index}`} className="group/image relative"><button type="button" className={`${imageUrls.length === 1 ? 'block w-full' : 'aspect-square w-full min-w-0'} overflow-hidden rounded-md bg-zinc-100`} onClick={() => setPreviewImage(src)} onContextMenu={(event) => { event.preventDefault(); setImageMenu(index) }}><img src={src} alt={`概要图片 ${index + 1}`} className={imageUrls.length === 1 ? 'block h-auto max-h-[180px] w-full object-contain' : 'h-full w-full object-cover'} /></button><button type="button" aria-label={`打开概要第 ${index + 1} 张图片操作`} className="absolute right-1 top-1 flex h-4 w-6 items-center justify-center rounded-full bg-zinc-600/90 text-white opacity-0 group-hover/image:opacity-100" style={{ transform: `scale(${1 / zoom})`, transformOrigin: 'top right' }} onClick={() => setImageMenu(imageMenu === index ? null : index)}><MoreHorizontal size={13} /></button>{imageMenu === index && <div className="absolute left-full top-0 z-[80] ml-2 w-24 rounded-lg border border-zinc-200 bg-white p-1 text-xs shadow-xl" style={{ transform: `scale(${1 / zoom})`, transformOrigin: 'top left' }} onMouseLeave={() => setImageMenu(null)}><ImageMenuButton icon={<Copy size={14} />} label="复制" onClick={() => { void copyImage(src); setImageMenu(null) }} /><ImageMenuButton icon={<Scissors size={14} />} label="剪切" onClick={() => void copyImage(src).finally(() => updateFormat({ imageDataUrls: imageUrls.filter((_, itemIndex) => itemIndex !== index), imageDataUrl: undefined }))} /><ImageMenuButton icon={<Trash2 size={14} />} label="删除" danger onClick={() => updateFormat({ imageDataUrls: imageUrls.filter((_, itemIndex) => itemIndex !== index), imageDataUrl: undefined })} /></div>}</div>)}</div></div>}
+      {summary.format?.table && <EditableNodeTable table={summary.format.table} onChange={(table) => updateFormat({ table })} />}
+      {imageUrls.length > 0 && <div className="relative mt-2 block w-full max-w-[216px]" onClick={(event) => event.stopPropagation()}><div className={`grid gap-2 ${imageUrls.length === 1 ? 'grid-cols-1' : imageUrls.length < 3 ? 'grid-cols-2' : 'grid-cols-3'}`}>{imageUrls.map((src, index) => <div key={`${src.slice(0, 24)}-${index}`} className="group/image relative"><button type="button" className={`${imageUrls.length === 1 ? 'block w-full' : 'aspect-square w-full min-w-0'} overflow-hidden rounded-md bg-zinc-100`} onClick={() => setPreviewImage(src)} onContextMenu={(event) => { event.preventDefault(); setImageMenu(index) }}><img src={src} alt={`概要图片 ${index + 1}`} className={imageUrls.length === 1 ? 'block h-auto max-h-[180px] w-full object-contain' : 'h-full w-full object-cover'} /></button><button type="button" aria-label={`打开概要第 ${index + 1} 张图片操作`} className="absolute right-1 top-1 flex h-4 w-6 items-center justify-center rounded-full bg-zinc-600/90 text-white opacity-0 group-hover/image:opacity-100" style={{ transform: 'scale(var(--mindmap-inverse-zoom, 1))', transformOrigin: 'top right' }} onClick={() => setImageMenu(imageMenu === index ? null : index)}><MoreHorizontal size={13} /></button>{imageMenu === index && <div className="absolute left-full top-0 z-[80] ml-2 w-24 rounded-lg border border-zinc-200 bg-white p-1 text-xs shadow-xl" style={{ transform: 'scale(var(--mindmap-inverse-zoom, 1))', transformOrigin: 'top left' }} onMouseLeave={() => setImageMenu(null)}><ImageMenuButton icon={<Copy size={14} />} label="复制" onClick={() => { void copyImage(src); setImageMenu(null) }} /><ImageMenuButton icon={<Scissors size={14} />} label="剪切" onClick={() => void copyImage(src).finally(() => updateFormat({ imageDataUrls: imageUrls.filter((_, itemIndex) => itemIndex !== index), imageDataUrl: undefined }))} /><ImageMenuButton icon={<Trash2 size={14} />} label="删除" danger onClick={() => updateFormat({ imageDataUrls: imageUrls.filter((_, itemIndex) => itemIndex !== index), imageDataUrl: undefined })} /></div>}</div>)}</div></div>}
     </div>
     {previewImage && createPortal(<div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/75 p-8" onClick={() => setPreviewImage(null)}><img src={previewImage} alt="概要图片大图预览" className="max-h-full max-w-full object-contain" onClick={(event) => event.stopPropagation()} /></div>, document.body)}
   </div>
@@ -358,7 +357,7 @@ async function copyImage(dataUrl: string) {
   }
 }
 
-const EditableNodeTable: React.FC<{ table: string[][]; zoom: number; onChange: (table: string[][]) => void }> = ({ table, zoom, onChange }) => {
+const EditableNodeTable: React.FC<{ table: string[][]; onChange: (table: string[][]) => void }> = ({ table, onChange }) => {
   const tableRef = React.useRef<HTMLDivElement>(null)
   const scrollRef = React.useRef<HTMLDivElement>(null)
   const columns = Math.max(1, table[0]?.length ?? 1)
@@ -412,16 +411,16 @@ const EditableNodeTable: React.FC<{ table: string[][]; zoom: number; onChange: (
         </div>))}
       </div>
     </div>
-    <TableEllipsisButton ariaLabel="列操作" className="top-0" style={{ left: activeColumnLeft }} zoom={zoom} open={openMenu === 'column'} onClick={() => setOpenMenu(openMenu === 'column' ? null : 'column')}>
-      <TableMenu side="right" zoom={zoom}>
+    <TableEllipsisButton ariaLabel="列操作" className="top-0" style={{ left: activeColumnLeft }} open={openMenu === 'column'} onClick={() => setOpenMenu(openMenu === 'column' ? null : 'column')}>
+      <TableMenu side="right">
         <TableMenuButton label="在前面添加列" icon={<PanelLeftOpen size={15} />} onClick={() => insertColumn(0)} />
         <TableMenuButton label="在后面添加列" icon={<PanelRightOpen size={15} />} onClick={() => insertColumn(1)} />
         <div className="my-1 border-t border-zinc-100" />
         <TableMenuButton label="删除当前列" icon={<Trash2 size={15} />} danger disabled={columns <= 1} onClick={deleteColumn} />
       </TableMenu>
     </TableEllipsisButton>
-    <TableEllipsisButton ariaLabel="行操作" className="-left-3" style={{ top: activeRowTop }} zoom={zoom} open={openMenu === 'row'} onClick={() => setOpenMenu(openMenu === 'row' ? null : 'row')}>
-      <TableMenu side="left" zoom={zoom}>
+    <TableEllipsisButton ariaLabel="行操作" className="-left-3" style={{ top: activeRowTop }} open={openMenu === 'row'} onClick={() => setOpenMenu(openMenu === 'row' ? null : 'row')}>
+      <TableMenu side="left">
         <TableMenuButton label="在前面添加行" icon={<PanelTopOpen size={15} />} onClick={() => insertRow(0)} />
         <TableMenuButton label="在后面添加行" icon={<PanelBottomOpen size={15} />} onClick={() => insertRow(1)} />
         <div className="my-1 border-t border-zinc-100" />
@@ -431,11 +430,13 @@ const EditableNodeTable: React.FC<{ table: string[][]; zoom: number; onChange: (
   </div>
 }
 
-const TableEllipsisButton: React.FC<{ ariaLabel: string; className: string; style?: React.CSSProperties; zoom: number; open: boolean; onClick: () => void; children: React.ReactNode }> = ({ ariaLabel, className, style, zoom, open, onClick, children }) => <div className={`absolute z-[70] ${className}`} style={style}>
-  <button type="button" aria-label={ariaLabel} className={`flex h-4 w-6 -translate-x-1/2 items-center justify-center rounded-full text-white shadow-sm transition hover:bg-zinc-800 ${open ? 'bg-zinc-600/90 opacity-100' : 'bg-zinc-600/90 opacity-0 group-hover/table:opacity-100 group-focus-within/table:opacity-100'}`} style={{ transform: `translateX(-50%) scale(${1 / zoom})`, transformOrigin: 'center' }} onMouseDown={(event) => event.preventDefault()} onClick={(event) => { event.stopPropagation(); onClick() }}><MoreHorizontal size={13} /></button>
+const TableEllipsisButton: React.FC<{ ariaLabel: string; className: string; style?: React.CSSProperties; open: boolean; onClick: () => void; children: React.ReactNode }> = ({ ariaLabel, className, style, open, onClick, children }) => <div className={`absolute z-[70] ${className}`} style={style}>
+  <button type="button" aria-label={ariaLabel} className={`flex h-4 w-6 -translate-x-1/2 items-center justify-center rounded-full text-white shadow-sm transition hover:bg-zinc-800 ${open ? 'bg-zinc-600/90 opacity-100' : 'bg-zinc-600/90 opacity-0 group-hover/table:opacity-100 group-focus-within/table:opacity-100'}`} style={{ transform: 'translateX(-50%) scale(var(--mindmap-inverse-zoom, 1))', transformOrigin: 'center' }} onMouseDown={(event) => event.preventDefault()} onClick={(event) => { event.stopPropagation(); onClick() }}><MoreHorizontal size={13} /></button>
   {open && children}
 </div>
 
-const TableMenu: React.FC<{ side?: 'left' | 'right'; zoom: number; children: React.ReactNode }> = ({ side, zoom, children }) => <div className={`absolute z-[80] ${side === 'left' ? 'right-full top-0 mr-1' : side === 'right' ? 'left-full top-1/2 ml-1' : 'left-1/2 top-full mt-1'}`}><div className="w-40 rounded-lg border border-zinc-200 bg-white p-1.5 text-xs text-zinc-700 shadow-xl" style={{ transform: `${side === 'right' ? 'translateY(-50%) ' : side ? '' : 'translateX(-50%) '}scale(${1 / zoom})`, transformOrigin: side === 'left' ? 'top right' : side === 'right' ? 'center left' : 'top center' }}>{children}</div></div>
+const TableMenu: React.FC<{ side?: 'left' | 'right'; children: React.ReactNode }> = ({ side, children }) => <div className={`absolute z-[80] ${side === 'left' ? 'right-full top-0 mr-1' : side === 'right' ? 'left-full top-1/2 ml-1' : 'left-1/2 top-full mt-1'}`}><div className="w-40 rounded-lg border border-zinc-200 bg-white p-1.5 text-xs text-zinc-700 shadow-xl" style={{ transform: `${side === 'right' ? 'translateY(-50%) ' : side ? '' : 'translateX(-50%) '}scale(var(--mindmap-inverse-zoom, 1))`, transformOrigin: side === 'left' ? 'top right' : side === 'right' ? 'center left' : 'top center' }}>{children}</div></div>
 
 const TableMenuButton: React.FC<{ label: string; icon: React.ReactNode; danger?: boolean; disabled?: boolean; onClick: () => void }> = ({ label, icon, danger, disabled, onClick }) => <button type="button" aria-label={label} disabled={disabled} className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-35 ${danger ? 'text-rose-500 hover:bg-rose-50' : ''}`} onMouseDown={(event) => event.preventDefault()} onClick={(event) => { event.stopPropagation(); onClick() }}><span className="flex w-4 items-center justify-center">{icon}</span><span>{label}</span></button>
+
+export const MindMapNode = React.memo(MindMapNodeComponent)

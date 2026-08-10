@@ -2,7 +2,6 @@ import React from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import type { Edge, Node } from 'reactflow'
 import type { MindMapAppearance, MindMapLayoutStrategy, MindMapLayoutState, OutlineNode } from '../../../types/document'
-import { findNodeById } from '../mindMapActions'
 import { outlineToGraph } from '../outlineToGraph'
 import { createBranchSideKey, filterCollapsedBranchSides } from '../branchSideCollapse'
 import { attachLayoutNodeSizes, buildMindMapNodeSizes } from '../nodeDataAssembler'
@@ -77,11 +76,21 @@ function collectVisibleTerminalNodes(node: OutlineNode, visibleNodeIds: Set<stri
   return visibleChildren.flatMap((child) => collectVisibleTerminalNodes(child, visibleNodeIds))
 }
 
-function buildSummaryTargets(root: OutlineNode, visibleNodeIds: Set<string>) {
+function indexOutlineNodes(root: OutlineNode) {
+  const nodeById = new Map<string, OutlineNode>()
+  const visit = (node: OutlineNode) => {
+    nodeById.set(node.id, node)
+    node.children.forEach(visit)
+  }
+  visit(root)
+  return nodeById
+}
+
+function buildSummaryTargets(root: OutlineNode, visibleNodeIds: Set<string>, nodeById: Map<string, OutlineNode>) {
   const targets = new Map<string, { ownerId: string; summary: NonNullable<OutlineNode['summary']> }>()
   const visit = (node: OutlineNode) => {
     if (node.summary) {
-      const coveredRoots = node.summary.nodeIds.map((id) => findNodeById(root, id)).filter((item): item is OutlineNode => Boolean(item))
+      const coveredRoots = node.summary.nodeIds.map((id) => nodeById.get(id)).filter((item): item is OutlineNode => Boolean(item))
       const target = (coveredRoots.length ? coveredRoots : [node])
         .map((covered) => findDeepestVisibleLeaf(covered, visibleNodeIds))
         .reduce((deepest, candidate) => candidate.depth >= deepest.depth ? candidate : deepest).node
@@ -123,9 +132,11 @@ export function useMindMapLayoutComputation({
     root: currentDoc.root,
     mindMapLayout: currentDoc.mindMapLayout,
     mindMapLayouts: currentDoc.mindMapLayouts,
-    mindMapAppearance: currentDoc.mindMapAppearance,
-  } : null, [currentDoc?.mindMapAppearance, currentDoc?.mindMapLayout, currentDoc?.mindMapLayouts, currentDoc?.root])
-  const mindMapTheme = resolveMindMapTheme(currentDoc?.mindMapAppearance?.themeId)
+  } : null, [currentDoc?.mindMapLayout, currentDoc?.mindMapLayouts, currentDoc?.root])
+  const mindMapTheme = React.useMemo(
+    () => resolveMindMapTheme(currentDoc?.mindMapAppearance?.themeId),
+    [currentDoc?.mindMapAppearance?.themeId],
+  )
   const themeLineColor = mindMapTheme.text
 
   const previewLayoutRoot = React.useMemo(() => {
@@ -143,14 +154,17 @@ export function useMindMapLayoutComputation({
     const layoutRoot = previewLayoutRoot ?? graphRootNode ?? layoutDocument.root
     const graph = outlineToGraph(layoutRoot, collapsedNodeIds, undefined)
     const nodeSizes = buildMindMapNodeSizes(layoutRoot, measuredNodeSizes)
-    const summaryTargets = buildSummaryTargets(layoutDocument.root, visibleNodeIds)
+    const nodeById = indexOutlineNodes(layoutDocument.root)
+    const matchedNodeIdSet = new Set(matchedNodeIds)
+    const selectedNodeIdSet = new Set(selectedNodeIds)
+    const summaryTargets = buildSummaryTargets(layoutDocument.root, visibleNodeIds, nodeById)
     // 先生成含预览节点的图，再统一交给布局引擎，避免预览节点绕过折叠、聚焦和搜索状态。
     const layoutInput: MindMapLayoutInput = {
       root: layoutRoot,
       graphData: {
         ...graph,
         nodes: graph.nodes.map((node) => {
-          const sourceNode = findNodeById(layoutDocument.root, node.id)
+          const sourceNode = nodeById.get(node.id)
           const data: MindMapNodeData = {
             label: sourceNode?.text ?? '',
             depth: depthByNodeId.get(node.id) ?? 0,
@@ -158,7 +172,7 @@ export function useMindMapLayoutComputation({
             visibleChildCount: sourceNode?.children.filter((child) => visibleNodeIds.has(child.id)).length ?? 0,
             collapsed: Boolean(sourceNode && collapsedNodeIds.has(sourceNode.id)),
             focused: node.id === validFocusRootNodeId,
-            matched: !exportClean && matchedNodeIds.includes(node.id),
+            matched: !exportClean && matchedNodeIdSet.has(node.id),
             activeMatch: !exportClean && node.id === activeMatchNodeId,
             hasTags: Boolean(sourceNode?.tags?.length),
             note: sourceNode?.note,
@@ -192,7 +206,7 @@ export function useMindMapLayoutComputation({
           return {
             ...node,
             data,
-            selected: !exportClean && selectedNodeIds.includes(node.id),
+            selected: !exportClean && selectedNodeIdSet.has(node.id),
           }
         }),
       },
@@ -232,7 +246,7 @@ export function useMindMapLayoutComputation({
       if (!summary) return node
       const coveredNodes = summary.nodeIds
         .flatMap((id: string) => {
-          const sourceNode = findNodeById(layoutDocument.root, id)
+          const sourceNode = nodeById.get(id)
           return sourceNode ? collectVisibleTerminalNodes(sourceNode, visibleNodeIds) : []
         })
         .map((covered: OutlineNode) => layoutNodeById.get(covered.id))
@@ -266,25 +280,18 @@ export function useMindMapLayoutComputation({
       },
     })))
   }, [
-    activeMatchNodeId,
     collapsedBranchSides,
     collapsedNodeIds,
     layoutDocument,
     depthByNodeId,
-    editingNodeId,
     experimentalLayoutEnabled,
-    exportClean,
     forcePreview,
     graphRootNode,
     handlers,
     layoutStrategy,
-    matchedNodeIds,
     measuredNodeSizeSignature,
     previewLayoutRoot,
     searchQuery,
-    selectedNodeIds,
-    selectedSummaryOwnerId,
-    themeLineColor,
     setEdges,
     setFeedback,
     setLayoutDiagnostics,
@@ -292,5 +299,45 @@ export function useMindMapLayoutComputation({
     validFocusRootNodeId,
     visibleNodeIds,
   ])
+
+  React.useEffect(() => {
+    const matchedNodeIdSet = new Set(matchedNodeIds)
+    const selectedNodeIdSet = new Set(selectedNodeIds)
+    setNodes((currentNodes) => currentNodes.map((node) => {
+      const nextSelected = !exportClean && selectedNodeIdSet.has(node.id)
+      const nextMatched = !exportClean && matchedNodeIdSet.has(node.id)
+      const nextActiveMatch = !exportClean && node.id === activeMatchNodeId
+      const nextSummarySelected = node.data.summaryOwnerId === selectedSummaryOwnerId
+      const nextEditing = editingNodeId === node.id
+      if (
+        node.selected === nextSelected
+        && node.data.matched === nextMatched
+        && node.data.activeMatch === nextActiveMatch
+        && node.data.summarySelected === nextSummarySelected
+        && node.data.editing === nextEditing
+        && Boolean(node.data.exportClean) === exportClean
+        && node.data.theme === mindMapTheme
+      ) return node
+      return {
+        ...node,
+        selected: nextSelected,
+        data: {
+          ...node.data,
+          matched: nextMatched,
+          activeMatch: nextActiveMatch,
+          summarySelected: nextSummarySelected,
+          editing: nextEditing,
+          exportClean,
+          theme: mindMapTheme,
+        },
+      }
+    }))
+  }, [activeMatchNodeId, editingNodeId, exportClean, matchedNodeIds, mindMapTheme, selectedNodeIds, selectedSummaryOwnerId, setNodes])
+
+  React.useEffect(() => {
+    setEdges((currentEdges) => currentEdges.map((edge) => edge.style?.stroke === themeLineColor
+      ? edge
+      : { ...edge, style: { ...edge.style, stroke: themeLineColor } }))
+  }, [setEdges, themeLineColor])
 
 }

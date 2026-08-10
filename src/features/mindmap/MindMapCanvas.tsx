@@ -57,16 +57,28 @@ export const MindMapCanvas = React.forwardRef<HTMLDivElement, MindMapCanvasProps
   onViewportChange,
 }, ref) => {
   const flowInstanceRef = React.useRef<ReactFlowInstance | null>(null)
+  const canvasRootRef = React.useRef<HTMLDivElement | null>(null)
   const [zoom, setZoom] = React.useState(1)
+
+  const assignCanvasRootRef = React.useCallback((node: HTMLDivElement | null) => {
+    canvasRootRef.current = node
+    if (typeof ref === 'function') ref(node)
+    else if (ref) ref.current = node
+  }, [ref])
+
+  const updateZoom = React.useCallback((nextZoom: number) => {
+    canvasRootRef.current?.style.setProperty('--mindmap-inverse-zoom', String(1 / Math.max(nextZoom, 0.1)))
+    setZoom(nextZoom)
+  }, [])
 
   const handleInit = React.useCallback((instance: ReactFlowInstance) => {
     flowInstanceRef.current = instance
-    setZoom(instance.getZoom?.() ?? 1)
+    updateZoom(instance.getZoom?.() ?? 1)
     onInit(instance)
-  }, [onInit])
+  }, [onInit, updateZoom])
 
   return (
-    <div ref={ref} tabIndex={0} aria-busy={!ready} className={`relative h-full w-full outline-none transition-opacity duration-75 ${ready ? 'opacity-100' : 'pointer-events-none opacity-0'}`} style={{ backgroundColor }}>
+    <div ref={assignCanvasRootRef} tabIndex={0} aria-busy={!ready} className={`relative h-full w-full outline-none transition-opacity duration-75 ${ready ? 'opacity-100' : 'pointer-events-none opacity-0'}`} style={{ backgroundColor, '--mindmap-inverse-zoom': 1 } as React.CSSProperties}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -82,7 +94,7 @@ export const MindMapCanvas = React.forwardRef<HTMLDivElement, MindMapCanvasProps
         onNodeDragStop={onNodeDragStop}
         onKeyDown={onKeyDown}
         onInit={handleInit}
-        onMove={(_event, viewport) => setZoom(viewport.zoom)}
+        onMove={(_event, viewport) => updateZoom(viewport.zoom)}
         onMoveEnd={(_event, viewport) => onViewportChange(viewport)}
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
         fitViewOptions={{ padding: 0.25, maxZoom: 1 }}
@@ -92,6 +104,7 @@ export const MindMapCanvas = React.forwardRef<HTMLDivElement, MindMapCanvasProps
         nodesDraggable={nodesDraggable}
         nodesConnectable={nodesConnectable}
         elementsSelectable
+        onlyRenderVisibleElements={nodes.length > 80}
         zoomOnDoubleClick={false}
         className="text-zinc-700"
         style={{ backgroundColor }}
