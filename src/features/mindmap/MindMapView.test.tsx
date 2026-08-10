@@ -571,7 +571,7 @@ describe('MindMapView', () => {
     expect(within(screen.getByTestId('mindmap-node-node-2')).getByTestId('flow-handle-right-source')).toHaveStyle({ opacity: '0' })
 
     fireEvent.doubleClick(screen.getByTestId('flow-node-node-2'))
-    expect(screen.getByRole('textbox', { name: '编辑节点文本' })).toHaveClass('border-0')
+    expect(screen.getByRole('textbox', { name: '编辑节点文本' })).toHaveClass('mindmap-inline-editor', 'border-0', 'focus-visible:outline-none')
     expect(screen.getByTestId('mindmap-node-node-2')).toHaveClass('border-[var(--color-primary)]')
   })
 
