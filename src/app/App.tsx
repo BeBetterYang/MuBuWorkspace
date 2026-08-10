@@ -41,7 +41,6 @@ export const App: React.FC = () => {
   const viewMode = useDocumentStore((s) => s.viewMode)
   const canUndo = useDocumentStore((s) => s.canUndo)
   const canRedo = useDocumentStore((s) => s.canRedo)
-  const saveDoc = useDocumentStore((s) => s.saveDoc)
   const saveStatus = useDocumentStore((s) => s.saveStatus)
   const isDirty = useDocumentStore((s) => s.isDirty)
   const currentFilePath = useDocumentStore((s) => s.currentFilePath)
@@ -143,7 +142,6 @@ export const App: React.FC = () => {
             onToggleAgent={() => setAgentOpen(!isAgentOpen)}
             onOpenImport={() => setIsImportOpen(true)}
             onOpenExport={() => setIsExportOpen(true)}
-            onSave={saveDoc}
           />
         )}
 

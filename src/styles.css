@@ -164,6 +164,64 @@ button:not(:disabled):active,
   color: var(--color-slate);
 }
 
+.ui-icon-button-primary {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: var(--shadow-subtle);
+}
+
+.ui-icon-button-primary:hover {
+  background: var(--color-primary-pressed);
+  color: #fff;
+}
+
+.sidebar-search-input:focus-visible {
+  outline: none;
+}
+
+.header-tool-cluster {
+  display: inline-flex;
+  height: 40px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--color-hairline);
+  border-radius: 10px;
+  background: var(--color-surface-soft);
+}
+
+.header-tool-button {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  color: var(--color-steel);
+}
+
+.header-tool-button:hover:not(:disabled) {
+  background: var(--color-canvas);
+  color: var(--color-primary-deep);
+  box-shadow: var(--shadow-subtle);
+}
+
+.header-tool-button-active,
+.header-tool-button-active:hover:not(:disabled) {
+  background: var(--color-tint-lavender);
+  color: var(--color-primary-deep);
+  box-shadow: none;
+}
+
+.header-tool-separator {
+  width: 1px;
+  height: 16px;
+  margin: 0 2px;
+  background: var(--color-hairline);
+}
+
 .ui-card {
   border: 1px solid var(--color-hairline);
   border-radius: var(--radius-card);

@@ -149,6 +149,7 @@ describe('App', () => {
   it('merges mind map png and pdf export into the document export dialog', async () => {
     render(<App />)
 
+    expect(screen.queryByTitle('保存 (Ctrl+S)')).not.toBeInTheDocument()
     await waitFor(() => expect(screen.getByTitle('导出')).toBeInTheDocument())
     await act(async () => {
       fireEvent.click(screen.getByTitle('导出'))

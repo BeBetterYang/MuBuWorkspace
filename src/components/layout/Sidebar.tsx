@@ -205,11 +205,11 @@ export const Sidebar: React.FC = () => {
       </div>
 
       <div ref={createMenuRef} className="relative flex items-center gap-2 px-3 pb-3">
-        <label className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-lg border border-[var(--color-hairline)] bg-[var(--color-canvas)] px-3 text-[var(--color-stone)] shadow-[var(--shadow-subtle)] focus-within:border-[var(--color-primary)] focus-within:ring-1 focus-within:ring-[var(--color-primary)]">
+        <label className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-lg border border-[var(--color-hairline)] bg-[var(--color-canvas)] px-3 text-[var(--color-stone)] shadow-[var(--shadow-subtle)] focus-within:border-[var(--color-primary)]">
           <Search size={14} className="shrink-0" />
-          <input value={query} onChange={(event) => setQuery(event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm text-zinc-700 outline-none" placeholder="搜索文档" aria-label="搜索文档" />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} className="sidebar-search-input min-w-0 flex-1 bg-transparent text-sm text-zinc-700 outline-none" placeholder="搜索文档" aria-label="搜索文档" />
         </label>
-        <button type="button" aria-label="新建" onClick={() => setCreateMenuOpen((open) => !open)} className="ui-icon-button h-11 w-11 rounded-lg bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-pressed)]"><Plus size={16} /></button>
+        <button type="button" aria-label="新建" onClick={() => setCreateMenuOpen((open) => !open)} className="ui-icon-button ui-icon-button-primary h-11 w-11" title="新建文档或文件夹"><Plus size={19} strokeWidth={2.4} /></button>
         {createMenuOpen && <div className="ui-popover absolute right-3 top-12 z-40 w-40 p-1.5"><CreateMenuButton icon={FilePlus2} label="新建文档" onClick={() => { setDraft({ type: 'document', name: '', parentId: selectedFolderId }); setCreateMenuOpen(false) }} /><CreateMenuButton icon={FolderPlus} label="新建文件夹" onClick={() => { setDraft({ type: 'folder', name: '', parentId: selectedFolderId }); setCreateMenuOpen(false) }} /></div>}
       </div>
 

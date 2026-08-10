@@ -33,7 +33,8 @@ describe('Sidebar', () => {
 
   it('renders the web workspace and document creation menu', () => {
     render(<Sidebar />)
-    expect(screen.getByRole('textbox', { name: '搜索文档' })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: '搜索文档' })).toHaveClass('sidebar-search-input')
+    expect(screen.getByRole('button', { name: '新建' })).toHaveClass('ui-icon-button-primary')
     expect(screen.queryByRole('button', { name: '智能创建AI' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '新建' }))
     expect(screen.getByRole('button', { name: '新建文档' })).toBeInTheDocument()

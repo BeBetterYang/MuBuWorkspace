@@ -6,12 +6,10 @@ import {
   FileOutput,
   LoaderCircle,
   Redo2,
-  Save,
   Sparkles,
   Undo2,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { toast } from '../../components/common/Toast'
 import type { SaveStatus, ViewMode } from '../../features/document/documentStore'
 import { ViewSwitcher } from './ViewSwitcher'
 
@@ -30,7 +28,6 @@ interface AppHeaderProps {
   onToggleAgent: () => void
   onOpenImport: () => void
   onOpenExport: () => void
-  onSave: () => Promise<boolean>
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
@@ -48,7 +45,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onToggleAgent,
   onOpenImport,
   onOpenExport,
-  onSave,
 }) => {
   const status = saveStatus === 'saving'
     ? { label: '保存中', icon: LoaderCircle, className: 'text-[var(--color-primary)]', spin: true }
@@ -82,86 +78,75 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         <ViewSwitcher viewMode={viewMode} onViewModeChange={onViewModeChange} />
       </div>
 
-      <div className="flex min-w-0 items-center justify-end gap-1 overflow-hidden">
-        <button
-          type="button"
-          onClick={onUndo}
-          disabled={!canUndo}
-          data-touch-target="true"
-          aria-label="撤销"
-          className="ui-icon-button disabled:cursor-not-allowed disabled:opacity-35"
-          title="撤销 (Ctrl+Z)"
-        >
-          <Undo2 size={15} />
-        </button>
+      <div className="flex min-w-0 items-center justify-end gap-2 overflow-hidden">
+        <div className="header-tool-cluster" aria-label="文档操作">
+          <button
+            type="button"
+            onClick={onUndo}
+            disabled={!canUndo}
+            data-touch-target="true"
+            aria-label="撤销"
+            className="header-tool-button disabled:cursor-not-allowed disabled:opacity-30"
+            title="撤销 (Ctrl+Z)"
+          >
+            <Undo2 size={16} strokeWidth={1.8} />
+          </button>
 
-        <button
-          type="button"
-          onClick={onRedo}
-          disabled={!canRedo}
-          data-touch-target="true"
-          aria-label="重做"
-          className="ui-icon-button disabled:cursor-not-allowed disabled:opacity-35"
-          title="重做 (Ctrl+Shift+Z)"
-        >
-          <Redo2 size={15} />
-        </button>
+          <button
+            type="button"
+            onClick={onRedo}
+            disabled={!canRedo}
+            data-touch-target="true"
+            aria-label="重做"
+            className="header-tool-button disabled:cursor-not-allowed disabled:opacity-30"
+            title="重做 (Ctrl+Shift+Z)"
+          >
+            <Redo2 size={16} strokeWidth={1.8} />
+          </button>
 
-        <button
-          type="button"
-          onClick={onToggleAgent}
-          data-touch-target="true"
-          aria-label="文档助理"
-          className={`ui-icon-button ${
-            isAgentOpen ? 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-pressed)]' : ''
-          }`}
-          title="文档助理"
-        >
-          <Sparkles size={15} />
-        </button>
+          <span className="header-tool-separator" aria-hidden="true" />
 
-        <button
-          type="button"
-          onClick={onOpenImport}
-          data-touch-target="true"
-          aria-label="导入"
-          className="ui-icon-button"
-          title="导入"
-        >
-          <FileInput size={15} />
-        </button>
+          <button
+            type="button"
+            onClick={onToggleAgent}
+            data-touch-target="true"
+            aria-label="文档助理"
+            aria-pressed={isAgentOpen}
+            className={`header-tool-button ${isAgentOpen ? 'header-tool-button-active' : ''}`}
+            title="文档助理"
+          >
+            <Sparkles size={16} strokeWidth={1.8} />
+          </button>
 
-        <button
-          type="button"
-          onClick={onOpenExport}
-          data-touch-target="true"
-          aria-label="导出"
-          className="ui-icon-button"
-          title="导出"
-        >
-          <FileOutput size={15} />
-        </button>
+          <span className="header-tool-separator" aria-hidden="true" />
 
-        <div className="mx-0.5 h-4 w-px bg-zinc-200" />
+          <button
+            type="button"
+            onClick={onOpenImport}
+            data-touch-target="true"
+            aria-label="导入"
+            className="header-tool-button"
+            title="导入"
+          >
+            <FileInput size={16} strokeWidth={1.8} />
+          </button>
+
+          <button
+            type="button"
+            onClick={onOpenExport}
+            data-touch-target="true"
+            aria-label="导出"
+            className="header-tool-button"
+            title="导出"
+          >
+            <FileOutput size={16} strokeWidth={1.8} />
+          </button>
+        </div>
 
         <div className={`flex shrink-0 items-center gap-1 whitespace-nowrap px-0.5 text-[11px] font-medium ${status.className}`} title={status.label}>
           <StatusIcon size={12} className={status.spin ? 'animate-spin' : ''} />
           <span className="hidden min-[1080px]:inline">{status.label}</span>
         </div>
-
-        <button
-          type="button"
-          onClick={() => void onSave().then((success) => {
-            if (success) toast.success('保存成功')
-          })}
-          data-touch-target="true"
-          className="ui-button ui-button-primary h-10 min-h-0 shrink-0 px-4 text-[13px] disabled:opacity-60"
-          title="保存 (Ctrl+S)"
-          disabled={saveStatus === 'saving'}
-        >
-          <Save size={13} />
-          <span className="hidden min-[860px]:inline">保存</span>
-        </button>
       </div>
     </motion.header>
   )

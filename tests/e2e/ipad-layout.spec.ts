@@ -42,9 +42,9 @@ test('applies the shared DESIGN.md tokens to primary actions and surfaces', asyn
   })
   expect(tokens).toEqual({ primary: '#5645d4', buttonRadius: '8px', cardRadius: '12px' })
 
-  const saveButton = page.locator('header .ui-button-primary').first()
-  await expect(saveButton).toBeVisible()
-  const visual = await saveButton.evaluate((element) => {
+  const createButton = page.locator('aside .ui-icon-button-primary').first()
+  await expect(createButton).toBeVisible()
+  const visual = await createButton.evaluate((element) => {
     const style = getComputedStyle(element)
     return { backgroundColor: style.backgroundColor, borderRadius: style.borderRadius }
   })
