@@ -6,7 +6,15 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'SF Pro Display', 'Segoe UI', 'system-ui', 'sans-serif'],
+        sans: ['Inter Variable', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Helvetica', 'sans-serif'],
+      },
+      colors: {
+        brand: {
+          DEFAULT: '#5645d4',
+          pressed: '#4534b3',
+          deep: '#3a2a99',
+          navy: '#0a1530',
+        },
       },
     },
   },

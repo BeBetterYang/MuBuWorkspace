@@ -186,25 +186,25 @@ export const OutlineNodeItem: React.FC<OutlineNodeItemProps> = ({
             ? { transform: `translate3d(0, ${previewShiftY}px, 0)` }
             : { backgroundColor: node.format?.backgroundColor }
       }
-      className={`group relative flex min-h-9 items-center px-2 py-1 rounded-lg transition-all duration-200 border ${
+      className={`group relative flex min-h-9 items-center rounded-lg border px-2 py-1 transition-[background-color,border-color,color,box-shadow,opacity,transform] duration-200 ${
         isAgentDeleting
           ? 'bg-rose-50/80 border-rose-200 text-rose-800'
           : agentTextPreview
             ? 'bg-emerald-50/80 border-emerald-200 text-zinc-900 ring-1 ring-emerald-200/70'
           : isAgentMoving
-            ? 'bg-sky-50/80 border-sky-200 text-zinc-900 ring-1 ring-sky-200/70'
+            ? 'bg-[var(--color-tint-sky)] border-[#9fc4e5] text-zinc-900 ring-1 ring-[#9fc4e5]/70'
           : isSelected || isMultiSelected
-          ? 'bg-[#FCFAF2] border-solid border-indigo-400/70 text-zinc-900 shadow-fabric'
+          ? 'bg-[var(--color-tint-lavender)] border-solid border-[var(--color-primary)]/60 text-zinc-900 shadow-sm'
           : isFocusedNode
-            ? 'bg-amber-50 border-amber-300/70 text-zinc-900 shadow-fabric'
-          : 'text-zinc-700 border-transparent hover:bg-[#FAF8F5]/80 hover:text-zinc-900'
+            ? 'bg-[var(--color-tint-yellow)] border-[#e6cf72] text-zinc-900 shadow-sm'
+          : 'text-zinc-700 border-transparent hover:bg-[var(--color-surface)] hover:text-zinc-900'
       } ${
         isDragging
           ? 'pointer-events-none z-10 transform-gpu will-change-transform opacity-75 shadow-lg ring-1 ring-amber-900/20 duration-75 ease-out'
           : ''
       } ${
         isDropTarget
-          ? 'border-amber-400/80 bg-amber-50/80 shadow-fabric ring-1 ring-amber-300/40'
+          ? 'border-[var(--color-primary)] bg-[var(--color-tint-lavender)] shadow-sm ring-1 ring-[var(--color-primary)]/30'
           : ''
       } ${
         previewShiftY !== 0 ? 'transform-gpu will-change-transform duration-200 ease-out' : ''

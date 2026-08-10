@@ -98,7 +98,7 @@ export const NodeFormattingToolbar: React.FC<{
   React.useEffect(() => setPanel(null), [nodeId, selectedIds.length])
   if (!node) return null
 
-  const button = (active = false) => `flex h-8 w-8 items-center justify-center rounded-md transition ${active ? 'bg-white/15 text-white' : 'text-zinc-300 hover:bg-white/10 hover:text-white'}`
+  const button = (active = false) => `flex h-8 w-8 items-center justify-center rounded-lg ${active ? 'bg-[#d6b6f6]/25 text-white ring-1 ring-[#d6b6f6]/40' : 'text-zinc-300 hover:bg-white/10 hover:text-white'}`
   const togglePanel = (next: Exclude<ToolbarPanel, null>, event: React.MouseEvent<HTMLButtonElement>) => {
     setPanelLeft(event.currentTarget.offsetLeft + event.currentTarget.offsetWidth / 2)
     setPanel((current) => current === next ? null : next)
@@ -151,7 +151,7 @@ export const NodeFormattingToolbar: React.FC<{
   return (
     <div className="node-formatting-shell fixed bottom-[calc(0.75rem+var(--safe-bottom))] left-1/2 z-[80] max-w-[calc(100vw-1.5rem)] -translate-x-1/2" onMouseDown={(event) => event.stopPropagation()}>
       {panel && (
-        <div className="apple-material absolute bottom-14 min-w-48 max-w-[calc(100vw-1.5rem)] -translate-x-1/2 rounded-2xl p-2 text-zinc-800" style={{ left: panelLeft }}>
+        <div className="ui-popover absolute bottom-14 min-w-48 max-w-[calc(100vw-1.5rem)] -translate-x-1/2 p-2 text-[var(--color-charcoal)] [--popover-origin:bottom_center]" style={{ left: panelLeft }}>
           {panel === 'type' && <div className="space-y-2">
             <div className="flex items-center gap-1">{[12, 14, 16, 18, 20, 24].map((size) => <button key={size} type="button" className={`rounded px-2 py-1 text-xs ${format.fontSize === size || !format.fontSize && size === 14 ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-zinc-100'}`} onClick={() => updateAll({ fontSize: size })}>{size}</button>)}</div>
             <div className="flex items-center gap-1 border-t border-zinc-100 pt-2">
@@ -177,7 +177,7 @@ export const NodeFormattingToolbar: React.FC<{
         </div>
       )}
 
-      <div className="node-formatting-toolbar flex max-w-[calc(100vw-1.5rem)] items-center gap-0.5 overflow-x-auto rounded-2xl border border-white/10 bg-zinc-900/95 p-1.5 shadow-[0_14px_38px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+      <div className="node-formatting-toolbar flex max-w-[calc(100vw-1.5rem)] items-center gap-0.5 overflow-x-auto rounded-xl border border-white/10 bg-[var(--color-brand-navy)] p-1.5 shadow-[var(--shadow-modal)]">
         {selectedIds.length > 1 && <span className="px-2 text-xs text-zinc-300">{selectedIds.length} 项</span>}
         <button type="button" title="文字格式" aria-label="文字格式" className={button(panel === 'type')} onClick={(event) => togglePanel('type', event)}><Type size={18} /></button>
         <button type="button" title="标记颜色" aria-label="标记颜色" className={button(panel === 'marker')} onMouseDown={(event) => event.preventDefault()} onClick={(event) => togglePanel('marker', event)}><Highlighter size={17} style={{ color: format.backgroundColor ?? '#fde047' }} /></button>

@@ -15,7 +15,7 @@ export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({ viewMode, onViewMode
   ]
 
   return (
-    <div className="flex shrink-0 items-center gap-0.5 rounded-xl border border-zinc-200/70 bg-zinc-100/80 p-0.5 shadow-sm dark:border-zinc-700/60 dark:bg-zinc-800/80">
+    <div className="flex shrink-0 items-center gap-1 rounded-full border border-[var(--color-hairline)] bg-[var(--color-surface)] p-1 dark:border-zinc-700 dark:bg-zinc-900">
       {items.map((item) => {
         const Icon = item.icon
         return (
@@ -26,10 +26,10 @@ export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({ viewMode, onViewMode
             aria-label={item.label}
             title={item.label}
             onClick={() => onViewModeChange(item.key)}
-            className={`apple-pressable flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-[9px] px-2.5 text-xs font-medium tracking-wide min-[901px]:px-3 ${
+            className={`flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 text-[13px] font-medium min-[901px]:px-3 ${
               viewMode === item.key
-                ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100'
-                : 'text-zinc-500 hover:bg-zinc-200/50 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-700/50 dark:hover:text-zinc-200'
+                ? 'border-black bg-black text-white shadow-sm dark:border-white dark:bg-white dark:text-black'
+                : 'border-transparent text-[var(--color-steel)] hover:bg-white hover:text-[var(--color-ink)] dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white'
             }`}
           >
             <Icon size={14} />

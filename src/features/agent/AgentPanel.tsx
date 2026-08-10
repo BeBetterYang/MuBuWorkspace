@@ -73,8 +73,8 @@ export const AgentPanel: React.FC = () => {
   )
 
   return (
-    <aside className="fixed inset-y-0 right-0 z-50 flex h-[100dvh] w-[min(380px,92vw)] shrink-0 flex-col border-l border-zinc-200 bg-white pb-[var(--safe-bottom)] pt-[var(--safe-top)] text-zinc-800 shadow-2xl lg:relative lg:z-auto lg:h-full lg:w-[360px] lg:pb-0 lg:pt-0 lg:shadow-sm">
-      <header className="flex h-14 items-center justify-between border-b border-zinc-200 px-4">
+    <aside className="ui-drawer fixed inset-y-0 right-0 z-50 flex h-[100dvh] w-[min(380px,92vw)] shrink-0 flex-col border-l border-[var(--color-hairline)] bg-[var(--color-canvas)] pb-[var(--safe-bottom)] pt-[var(--safe-top)] text-[var(--color-charcoal)] shadow-[var(--shadow-modal)] lg:relative lg:z-auto lg:h-full lg:w-[360px] lg:pb-0 lg:pt-0 lg:shadow-none">
+      <header className="flex h-14 items-center justify-between border-b border-[var(--color-hairline)] px-4">
         <div className="flex items-center gap-2">
           <Bot size={16} className="text-zinc-700" />
           <h2 className="text-sm font-semibold">文档助理</h2>
@@ -84,7 +84,7 @@ export const AgentPanel: React.FC = () => {
           type="button"
           onClick={() => setOpen(false)}
           data-touch-target="true"
-          className="apple-pressable flex h-9 w-9 items-center justify-center rounded-xl text-zinc-500 hover:bg-zinc-100"
+          className="ui-icon-button"
           title="关闭助理"
         >
           <X size={15} />
@@ -102,8 +102,8 @@ export const AgentPanel: React.FC = () => {
               key={item.id}
               className={`rounded-md px-3 py-2 text-xs leading-5 ${
                 item.role === 'user'
-                  ? 'bg-zinc-900 text-white'
-                  : 'border border-zinc-200 bg-white text-zinc-600'
+                  ? 'bg-[var(--color-primary)] text-white'
+                  : 'border border-[var(--color-hairline)] bg-white text-[var(--color-slate)]'
               }`}
             >
               <AgentMarkdownText text={item.text} />

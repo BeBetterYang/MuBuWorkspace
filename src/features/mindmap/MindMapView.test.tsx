@@ -123,7 +123,7 @@ vi.mock('reactflow', async () => {
                   event.stopPropagation()
                   const isReorganizeMode = document
                     .querySelector('[aria-label="重组"]')
-                    ?.className.includes('bg-emerald-100') ?? false
+                    ?.className.includes('bg-[var(--color-tint-lavender)]') ?? false
                   const targetNode = nodes.find((currentNode) => currentNode.id === 'node-1')
                   const draggedPosition = isReorganizeMode && targetNode
                     ? targetNode.position ?? { x: 0, y: 0 }
@@ -576,13 +576,13 @@ describe('MindMapView', () => {
     render(<MindMapView />)
 
     fireEvent.click(screen.getByTestId('flow-node-node-2'))
-    expect(screen.getByTestId('mindmap-node-node-2')).toHaveClass('border-indigo-500')
+    expect(screen.getByTestId('mindmap-node-node-2')).toHaveClass('border-[var(--color-primary)]')
     expect(within(screen.getByTestId('mindmap-node-node-2')).getByTestId('flow-handle-left-source')).toHaveStyle({ background: '#18181B' })
     expect(within(screen.getByTestId('mindmap-node-node-2')).getByTestId('flow-handle-right-source')).toHaveStyle({ opacity: '0' })
 
     fireEvent.doubleClick(screen.getByTestId('flow-node-node-2'))
     expect(screen.getByRole('textbox', { name: '编辑节点文本' })).toHaveClass('border-0')
-    expect(screen.getByTestId('mindmap-node-node-2')).toHaveClass('border-indigo-500')
+    expect(screen.getByTestId('mindmap-node-node-2')).toHaveClass('border-[var(--color-primary)]')
   })
 
   it('shows hover controls for collapse and adding a child', () => {
@@ -802,7 +802,7 @@ describe('MindMapView', () => {
     expandMindMapToolbar()
 
     fireEvent.click(screen.getByRole('button', { name: '重组' }))
-    await waitFor(() => expect(screen.getByRole('button', { name: '重组' })).toHaveClass('bg-emerald-100'))
+    await waitFor(() => expect(screen.getByRole('button', { name: '重组' })).toHaveClass('bg-[var(--color-tint-lavender)]'))
     const draggedNode = screen.getByTestId('flow-node-node-2')
     expect(draggedNode).toHaveAttribute('data-position-x', '900')
 
@@ -837,7 +837,7 @@ describe('MindMapView', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '重组' }))
     fireEvent.click(screen.getByTestId('flow-controls'))
-    await waitFor(() => expect(screen.getByRole('button', { name: '重组' })).toHaveClass('bg-emerald-100'))
+    await waitFor(() => expect(screen.getByRole('button', { name: '重组' })).toHaveClass('bg-[var(--color-tint-lavender)]'))
     fireEvent.drag(screen.getByTestId('flow-node-node-2'))
 
     await waitFor(() => expect(screen.getByTestId('mindmap-node-node-1')).toHaveClass('ring-2'))

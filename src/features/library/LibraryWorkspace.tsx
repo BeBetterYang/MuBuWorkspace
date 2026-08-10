@@ -121,30 +121,30 @@ export const LibraryWorkspace: React.FC = () => {
   }
 
   return (
-    <section className="flex h-full flex-col bg-[#FCFCFB] text-zinc-800">
-      <header className="flex h-12 shrink-0 items-center justify-between border-b border-zinc-200/70 bg-white/70 px-5">
+    <section className="flex h-full flex-col bg-[var(--color-surface-soft)] text-[var(--color-charcoal)]">
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-[var(--color-hairline)] bg-white px-6">
         <div className="flex items-center gap-2">
           <Database size={16} className="text-zinc-700" />
           <span className="text-sm font-semibold">文档库</span>
           {isLoading && <RefreshCw size={13} className="animate-spin text-zinc-400" />}
         </div>
         <div className="flex items-center gap-1.5">
-          <button type="button" onClick={handleAddDoc} className="flex h-8 items-center gap-1.5 rounded-md bg-zinc-900 px-3 text-xs font-medium text-white hover:bg-zinc-800">
+          <button type="button" onClick={handleAddDoc} className="ui-button ui-button-primary h-10 min-h-0 px-4 text-[13px]">
             <FilePlus2 size={14} />
             加入文档
           </button>
-          <button type="button" onClick={handleRefreshAll} className="flex h-8 items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-600 hover:bg-zinc-50">
+          <button type="button" onClick={handleRefreshAll} className="ui-button ui-button-secondary h-10 min-h-0 px-4 text-[13px]">
             <RefreshCw size={14} />
             刷新
           </button>
-          <button type="button" onClick={handleRebuild} className="h-8 rounded-md border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-600 hover:bg-zinc-50">
+          <button type="button" onClick={handleRebuild} className="ui-button ui-button-secondary h-10 min-h-0 px-4 text-[13px]">
             重建索引
           </button>
         </div>
       </header>
 
-      <div className="border-b border-zinc-200/70 bg-white/50 px-5 py-2">
-        <div className="grid w-[390px] grid-cols-3 gap-1 rounded-md border border-zinc-200 bg-white p-0.5 shadow-sm">
+      <div className="border-b border-[var(--color-hairline)] bg-white px-6 py-3">
+        <div className="grid w-[390px] grid-cols-3 gap-1 border-b border-[var(--color-hairline)]">
           {[
             { key: 'docs', label: '文档', icon: FolderOpen },
             { key: 'search', label: '搜索', icon: Search },
@@ -156,10 +156,10 @@ export const LibraryWorkspace: React.FC = () => {
                 key={item.key}
                 type="button"
                 onClick={() => setActiveView(item.key as LibraryView)}
-                className={`flex items-center justify-center gap-1.5 rounded-[4px] px-2 py-1.5 text-xs font-medium transition ${
+                className={`flex items-center justify-center gap-1.5 border-b-2 px-2 py-2 text-[13px] font-medium ${
                   currentView === item.key
-                    ? 'bg-zinc-900 text-white'
-                    : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'
+                    ? 'border-[var(--color-primary)] text-[var(--color-ink)]'
+                    : 'border-transparent text-[var(--color-steel)] hover:text-[var(--color-ink)]'
                 }`}
               >
                 <Icon size={13} />

@@ -12,7 +12,7 @@ interface MindMapAppearancePanelProps {
 }
 
 export const MindMapAppearancePanel: React.FC<MindMapAppearancePanelProps> = ({ appearance, onChange }) => (
-  <div className="apple-material absolute right-0 top-12 z-30 max-h-[min(70dvh,680px)] w-[420px] max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-2xl p-4">
+  <div className="ui-popover absolute right-0 top-12 z-30 max-h-[min(70dvh,680px)] w-[420px] max-w-[calc(100vw-1.5rem)] overflow-y-auto p-5 [--popover-origin:top_right]">
     <div className="mb-3 text-sm font-semibold text-zinc-900">配色</div>
     {(['简约', '浅色', '深色'] as const).map((group) => (
       <div key={group} className="mb-4">
@@ -26,7 +26,7 @@ export const MindMapAppearancePanel: React.FC<MindMapAppearancePanelProps> = ({ 
                 type="button"
                 aria-label={`配色 ${theme.name}`}
                 onClick={() => onChange({ themeId: theme.id })}
-                className={`relative rounded-lg border p-2 text-left transition hover:-translate-y-0.5 hover:shadow-sm ${active ? 'border-indigo-500 ring-2 ring-indigo-100' : 'border-zinc-200'}`}
+                className={`relative rounded-lg border p-3 text-left ${active ? 'border-[var(--color-primary)] ring-2 ring-[var(--color-tint-lavender)]' : 'border-[var(--color-hairline)] hover:border-[var(--color-hairline-strong)]'}`}
                 style={{ backgroundColor: group === '深色' ? theme.nodeBackground : '#FFFFFF' }}
               >
                 <div className="mb-2 text-xs font-semibold" style={{ color: group === '深色' ? theme.text : '#3F3F46' }}>{theme.name}</div>
@@ -35,7 +35,7 @@ export const MindMapAppearancePanel: React.FC<MindMapAppearancePanelProps> = ({ 
                   <span className="h-3 w-5 rounded-sm" style={{ backgroundColor: theme.branchBackground }} />
                   <span className="h-px flex-1" style={{ backgroundColor: theme.text }} />
                 </div>
-                {active && <Check className="absolute right-2 top-2 h-3.5 w-3.5 text-indigo-600" />}
+                {active && <Check className="absolute right-2 top-2 h-3.5 w-3.5 text-[var(--color-primary)]" />}
               </button>
             )
           })}
@@ -51,7 +51,7 @@ export const MindMapAppearancePanel: React.FC<MindMapAppearancePanelProps> = ({ 
             type="button"
             aria-label={`背景色 ${color}`}
             onClick={() => onChange({ backgroundColor: color })}
-            className={`h-7 w-7 rounded-md border shadow-sm ${appearance.backgroundColor === color ? 'border-indigo-500 ring-2 ring-indigo-100' : 'border-zinc-200'}`}
+            className={`h-8 w-8 rounded-lg border shadow-sm ${appearance.backgroundColor === color ? 'border-[var(--color-primary)] ring-2 ring-[var(--color-tint-lavender)]' : 'border-[var(--color-hairline)]'}`}
             style={{ backgroundColor: color }}
           />
         ))}

@@ -29,6 +29,28 @@ test('keeps the workspace inside the iPad viewport with touch-sized primary cont
   }
 })
 
+test('applies the shared DESIGN.md tokens to primary actions and surfaces', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
+
+  const tokens = await page.evaluate(() => {
+    const root = getComputedStyle(document.documentElement)
+    return {
+      primary: root.getPropertyValue('--color-primary').trim(),
+      buttonRadius: root.getPropertyValue('--radius-button').trim(),
+      cardRadius: root.getPropertyValue('--radius-card').trim(),
+    }
+  })
+  expect(tokens).toEqual({ primary: '#5645d4', buttonRadius: '8px', cardRadius: '12px' })
+
+  const saveButton = page.locator('header .ui-button-primary').first()
+  await expect(saveButton).toBeVisible()
+  const visual = await saveButton.evaluate((element) => {
+    const style = getComputedStyle(element)
+    return { backgroundColor: style.backgroundColor, borderRadius: style.borderRadius }
+  })
+  expect(visual).toEqual({ backgroundColor: 'rgb(86, 69, 212)', borderRadius: '8px' })
+})
+
 test('uses an overlay sidebar in portrait and a docked sidebar in landscape', async ({ page }, testInfo) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' })
   const sidebar = page.locator('aside').first()

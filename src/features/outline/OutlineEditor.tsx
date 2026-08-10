@@ -153,7 +153,7 @@ export const OutlineEditor: React.FC = () => {
       onClick={handleEmptyClick}
     >
       {/* Title Header: Stitched Fabric Tag look */}
-      <div className="mb-8 border-b border-dashed border-amber-900/20 dark:border-zinc-800 pb-4 shrink-0">
+      <div className="mb-8 shrink-0 border-b border-[var(--color-hairline)] pb-4 dark:border-zinc-800">
         <input
           type="text"
           value={currentDoc.title || ''}
@@ -168,7 +168,7 @@ export const OutlineEditor: React.FC = () => {
 
       <div className="mb-3 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
         {hasMultiSelection && (
-          <div className="flex items-center gap-1.5 rounded-md border border-amber-900/10 bg-[#FAF8F5] px-2.5 py-1">
+          <div className="flex items-center gap-1.5 rounded-lg border border-[var(--color-hairline)] bg-[var(--color-surface)] px-2.5 py-1">
             <span>{`已选择 ${selectedVisibleNodeIds.length} 个节点`}</span>
             <button type="button" onClick={() => runBatchMove('up')} className="rounded px-1.5 hover:bg-[#EFECE3]">
               上移
@@ -230,9 +230,9 @@ export const OutlineEditor: React.FC = () => {
         {visibleNodes.length === 0 && rootAgentInsertions.length === 0 && (
           <div
             onClick={() => insertNode(currentDoc.root.id)}
-            className="flex flex-col items-center gap-3 border border-dashed border-amber-900/30 dark:border-zinc-800 rounded-2xl p-8 text-zinc-400 dark:text-zinc-500 hover:border-amber-900/50 dark:hover:border-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-300 transition cursor-pointer justify-center my-6 select-none bg-[#FAF9F5]/40 dark:bg-zinc-900/20 group shadow-sm"
+            className="group my-6 flex cursor-pointer select-none flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[var(--color-hairline-strong)] bg-[var(--color-surface-soft)] p-8 text-[var(--color-stone)] hover:border-[var(--color-primary)] hover:bg-[var(--color-tint-lavender)] hover:text-[var(--color-primary-deep)] dark:border-zinc-800 dark:bg-zinc-900/20 dark:text-zinc-500 dark:hover:border-zinc-600 dark:hover:text-zinc-300"
           >
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-amber-900/5 dark:bg-zinc-800/50 group-hover:scale-110 transition-transform duration-300">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white shadow-[var(--shadow-subtle)] dark:bg-zinc-800/50">
               <Plus size={16} />
             </div>
             <span className="text-xs font-medium tracking-wide">点击缝入第一个节点</span>

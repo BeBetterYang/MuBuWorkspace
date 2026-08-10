@@ -105,13 +105,13 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({ isOpen, onClose }) => 
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-y-0 right-0 z-40 flex w-[400px] flex-col border-l border-zinc-200 bg-white/95 font-sans text-zinc-700 shadow-[0_0_40px_rgba(0,0,0,0.05)] backdrop-blur-xl transition-all duration-300 animate-slide-left">
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-zinc-200/60 bg-white/50 px-5">
+    <div className="ui-drawer fixed inset-y-0 right-0 z-40 flex w-[min(400px,92vw)] flex-col border-l border-[var(--color-hairline)] bg-white font-sans text-[var(--color-charcoal)] shadow-[var(--shadow-modal)]">
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-[var(--color-hairline)] bg-white px-5">
         <div className="flex items-center gap-2.5">
           <Search size={16} className="font-bold text-zinc-800" strokeWidth={2.5} />
           <span className="text-[15px] font-semibold tracking-wide text-zinc-900">工作台</span>
         </div>
-        <button type="button" onClick={onClose} className="rounded-md p-1.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-800 focus:outline-none">
+        <button type="button" aria-label="关闭工作台" onClick={onClose} className="ui-icon-button">
           <X size={16} />
         </button>
       </div>
@@ -130,7 +130,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({ isOpen, onClose }) => 
                 onClick={() => setActiveTab(tab.key as SearchPanelTab)}
                 className={`flex items-center justify-center gap-1.5 rounded-[4px] px-2 py-1.5 text-xs font-medium transition ${
                   activeTab === tab.key
-                    ? 'bg-zinc-900 text-white'
+                    ? 'bg-[var(--color-primary)] text-white'
                     : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'
                 }`}
               >

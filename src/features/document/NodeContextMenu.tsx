@@ -91,7 +91,7 @@ export const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
   return (
     <div
       role="menu"
-      className="fixed z-40 w-52 rounded-lg border border-amber-900/15 bg-[#FFFCF5] p-1.5 text-xs shadow-[0_16px_40px_rgba(75,55,35,0.18)]"
+      className="ui-popover fixed z-40 w-52 p-1.5 text-[13px]"
       style={menuStyle}
       onClick={(event) => event.stopPropagation()}
     >
@@ -107,8 +107,8 @@ export const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
             disabled={item.disabled}
             className={`flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left transition ${
               item.danger
-                ? 'text-rose-700 enabled:hover:bg-rose-50'
-                : 'text-zinc-700 enabled:hover:bg-amber-100/60'
+                ? 'text-[var(--color-error)] enabled:hover:bg-[var(--color-tint-rose)]'
+                : 'text-[var(--color-charcoal)] enabled:hover:bg-[var(--color-tint-lavender)]'
             } disabled:cursor-not-allowed disabled:text-zinc-300`}
             onClick={() => onAction(item.action)}
           >
@@ -120,7 +120,7 @@ export const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
       {onFocusBranch && (
         <button
           role="menuitem"
-          className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-zinc-700 transition hover:bg-amber-100/60"
+          className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-[var(--color-charcoal)] hover:bg-[var(--color-tint-lavender)]"
           onClick={onFocusBranch}
         >
           <Focus className="h-3.5 w-3.5" />
@@ -130,7 +130,7 @@ export const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
       {onRelayoutBranch && (
         <button
           role="menuitem"
-          className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-zinc-700 transition hover:bg-amber-100/60"
+          className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-[var(--color-charcoal)] hover:bg-[var(--color-tint-lavender)]"
           onClick={onRelayoutBranch}
         >
           <RefreshCw className="h-3.5 w-3.5" />
@@ -140,7 +140,7 @@ export const NodeContextMenu: React.FC<NodeContextMenuProps> = ({
       {onUnlockNode && (
         <button
           role="menuitem"
-          className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-zinc-700 transition hover:bg-amber-100/60"
+          className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-[var(--color-charcoal)] hover:bg-[var(--color-tint-lavender)]"
           onClick={onUnlockNode}
         >
           <LocateFixed className="h-3.5 w-3.5" />

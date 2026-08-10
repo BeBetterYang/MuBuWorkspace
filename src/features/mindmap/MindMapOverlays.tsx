@@ -94,7 +94,7 @@ export const MindMapOverlays: React.FC<MindMapOverlaysProps> = ({
         />
       )}
       {feedback && !exportClean && (
-        <div className="absolute right-4 top-[4.75rem] z-10 max-w-[calc(100%-2rem)] rounded-md border border-amber-900/10 bg-[#FAF8F4]/95 px-3 py-2 text-xs font-medium text-zinc-600 shadow-fabric">
+        <div className="ui-popover absolute right-4 top-[4.75rem] z-10 max-w-[calc(100%-2rem)] px-3 py-2 text-xs font-medium text-[var(--color-slate)]">
           {feedback}
         </div>
       )}

@@ -43,7 +43,7 @@ const ImportOptionButton: React.FC<{
   <button
     type="button"
     onClick={onClick}
-    className="group flex w-full items-center justify-between rounded-xl border border-zinc-200/80 bg-zinc-50 p-3.5 text-left shadow-sm transition-all hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+    className="ui-card group flex w-full items-center justify-between p-4 text-left hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-soft)] dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
   >
     <div>
       <div className="text-[13px] font-semibold tracking-wide">{title}</div>
@@ -98,7 +98,7 @@ const ExportOptionButton: React.FC<{
   <button
     type="button"
     onClick={() => onExport(format)}
-    className="group flex w-full items-center justify-between rounded-xl border border-zinc-200/80 bg-zinc-50 p-3.5 text-left shadow-sm transition-all hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+    className="ui-card group flex w-full items-center justify-between p-4 text-left hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-soft)] dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
   >
     <div>
       <div className="text-[13px] font-semibold tracking-wide">{title}</div>
@@ -203,7 +203,7 @@ export const ImportPreviewDialog: React.FC<ImportPreviewDialogProps> = ({
           <button
             type="button"
             onClick={() => onConfirm(mode)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-2 text-[12px] font-medium text-white transition hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+          className="ui-button ui-button-primary h-10 min-h-0 px-4 text-[13px]"
           >
             <Plus size={14} />
             确认导入
@@ -261,7 +261,7 @@ const MindMapExportButton: React.FC<{
       type="button"
       onClick={() => onClick(format)}
       disabled={isExporting}
-      className="group flex w-full items-center justify-between rounded-xl border border-zinc-200/80 bg-amber-50/80 p-3.5 text-left shadow-sm transition-all hover:border-amber-200 hover:bg-amber-100/70 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-800 dark:bg-amber-900/20 dark:hover:border-amber-700/50 dark:hover:bg-amber-900/40"
+      className="ui-card group flex w-full items-center justify-between bg-[var(--color-tint-lavender)] p-4 text-left hover:border-[var(--color-primary)] disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-800 dark:bg-indigo-950/30"
     >
       <div>
         <div className="text-[13px] font-semibold tracking-wide">

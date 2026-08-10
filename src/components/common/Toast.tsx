@@ -44,30 +44,31 @@ export const ToastContainer: React.FC = () => {
   const removeToast = useToastStore((s) => s.removeToast)
 
   return (
-    <div className="fixed bottom-12 right-6 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+    <div className="fixed bottom-[calc(1.5rem+var(--safe-bottom))] right-[calc(1.5rem+var(--safe-right))] z-50 flex w-[min(360px,calc(100vw-3rem))] max-w-sm flex-col gap-2 pointer-events-none">
       {toasts.map((item) => {
         const icon = {
-          success: <CheckCircle className="h-5 w-5 text-emerald-500" />,
-          error: <AlertCircle className="h-5 w-5 text-rose-500" />,
-          info: <Info className="h-5 w-5 text-sky-500" />,
+          success: <CheckCircle className="h-5 w-5 text-[var(--color-success)]" />,
+          error: <AlertCircle className="h-5 w-5 text-[var(--color-error)]" />,
+          info: <Info className="h-5 w-5 text-[var(--color-primary)]" />,
         }[item.type]
 
         const bgClass = {
-          success: 'bg-emerald-950/80 border-emerald-500/30 text-emerald-100',
-          error: 'bg-rose-950/80 border-rose-500/30 text-rose-100',
-          info: 'bg-zinc-900/85 border-zinc-700/50 text-zinc-100',
+          success: 'border-l-[var(--color-success)]',
+          error: 'border-l-[var(--color-error)]',
+          info: 'border-l-[var(--color-primary)]',
         }[item.type]
 
         return (
           <div
             key={item.id}
-            className={`flex items-center gap-3 p-4 rounded-lg border shadow-lg backdrop-blur-md pointer-events-auto transition-all duration-300 transform translate-y-0 opacity-100 animate-slide-in ${bgClass}`}
+            className={`ui-toast pointer-events-auto flex items-center gap-3 rounded-xl border border-[var(--color-hairline)] border-l-[3px] bg-white p-4 text-[var(--color-charcoal)] shadow-[var(--shadow-card)] ${bgClass}`}
           >
             <div>{icon}</div>
             <div className="flex-1 text-sm font-medium leading-5">{item.message}</div>
             <button
               onClick={() => removeToast(item.id)}
-              className="text-zinc-400 hover:text-zinc-200 transition focus:outline-none"
+              aria-label="关闭通知"
+              className="ui-icon-button h-7 w-7"
             >
               <X className="h-4 w-4" />
             </button>

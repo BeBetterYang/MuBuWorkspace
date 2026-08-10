@@ -115,8 +115,8 @@ export const MindMapNode: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, se
       ? 'rounded-md border-[1.5px] px-3 py-2'
       : 'rounded-lg border-[1.5px] px-1.5 py-1'
   const idleSurface = isRoot
-    ? 'border-transparent bg-indigo-600 shadow-[0_3px_10px_rgba(79,70,229,0.18)] hover:border-indigo-400'
-    : 'border-transparent bg-transparent hover:border-indigo-300'
+    ? 'border-transparent bg-[var(--color-primary)] shadow-[0_3px_10px_rgba(86,69,212,0.18)] hover:border-[var(--color-primary)]'
+    : 'border-transparent bg-transparent hover:border-[var(--color-primary)]'
   const themeBackground = isRoot
     ? data.theme?.rootBackground
     : 'transparent'
@@ -149,9 +149,9 @@ export const MindMapNode: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, se
         : data.activeMatch && !data.exportClean
           ? 'scale-[1.03] border-transparent bg-sky-50 ring-2 ring-sky-500/60'
         : data.editing && !data.exportClean
-          ? 'border-indigo-500 bg-transparent shadow-[0_4px_12px_rgba(79,70,229,0.10)]'
+          ? 'border-[var(--color-primary)] bg-transparent shadow-[0_4px_12px_rgba(86,69,212,0.10)]'
         : selected && !data.exportClean
-          ? `${isRoot ? 'bg-indigo-600' : 'bg-transparent'} border-indigo-500 shadow-[0_3px_10px_rgba(79,70,229,0.08)]`
+          ? `${isRoot ? 'bg-[var(--color-primary)]' : 'bg-transparent'} border-[var(--color-primary)] shadow-[0_3px_10px_rgba(86,69,212,0.08)]`
         : data.matched && !data.exportClean
           ? 'border-transparent bg-sky-50 ring-2 ring-sky-300/60'
         : data.focused

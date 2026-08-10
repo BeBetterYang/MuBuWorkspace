@@ -33,13 +33,13 @@ export const MindMapToolbar: React.FC<MindMapToolbarProps> = ({
 
   if (!expanded) {
     return (
-      <div className="mindmap-floating-toolbar safe-floating-top apple-material absolute right-[calc(0.75rem+var(--safe-right))] z-30 rounded-2xl p-1">
+      <div className="mindmap-floating-toolbar safe-floating-top ui-popover absolute right-[calc(0.75rem+var(--safe-right))] z-30 p-1">
         <button
           type="button"
           aria-label="展开导图工具"
           title="展开导图工具"
           onClick={() => setExpanded(true)}
-          className="apple-pressable flex h-9 w-9 items-center justify-center rounded-xl text-zinc-500 hover:bg-amber-50 hover:text-zinc-800"
+          className="ui-icon-button"
         >
           <SlidersHorizontal className="h-4 w-4" />
         </button>
@@ -48,14 +48,14 @@ export const MindMapToolbar: React.FC<MindMapToolbarProps> = ({
   }
 
   return (
-    <div className="mindmap-floating-toolbar safe-floating-top apple-material absolute right-[calc(0.75rem+var(--safe-right))] z-30 flex max-w-[calc(100vw-1.5rem)] items-center gap-1 overflow-visible rounded-2xl p-1">
+    <div className="mindmap-floating-toolbar safe-floating-top ui-popover absolute right-[calc(0.75rem+var(--safe-right))] z-30 flex max-w-[calc(100vw-1.5rem)] items-center gap-1 overflow-visible p-1">
       <button
         type="button"
         aria-label="布局"
         title="布局"
         onClick={() => onModeChange('layout')}
-        className={`flex h-8 w-8 items-center justify-center rounded-md transition ${
-          mode === 'layout' ? 'bg-amber-100 text-amber-900' : 'text-zinc-500 hover:bg-amber-50'
+        className={`ui-icon-button ${
+          mode === 'layout' ? 'bg-[var(--color-tint-lavender)] text-[var(--color-primary-deep)]' : ''
         }`}
       >
         <Move className="h-4 w-4" />
@@ -65,8 +65,8 @@ export const MindMapToolbar: React.FC<MindMapToolbarProps> = ({
         aria-label="重组"
         title="重组"
         onClick={() => onModeChange('reorganize')}
-        className={`flex h-8 w-8 items-center justify-center rounded-md transition ${
-          mode === 'reorganize' ? 'bg-emerald-100 text-emerald-800' : 'text-zinc-500 hover:bg-amber-50'
+        className={`ui-icon-button ${
+          mode === 'reorganize' ? 'bg-[var(--color-tint-lavender)] text-[var(--color-primary-deep)]' : ''
         }`}
       >
         <GitBranch className="h-4 w-4" />
@@ -77,7 +77,7 @@ export const MindMapToolbar: React.FC<MindMapToolbarProps> = ({
         title="自动整理"
         onClick={onAutoLayout}
         disabled={strategy === 'free-canvas'}
-        className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-35"
+        className="ui-icon-button disabled:cursor-not-allowed disabled:opacity-35"
       >
         <LayoutDashboard className="h-4 w-4" />
       </button>
@@ -86,7 +86,7 @@ export const MindMapToolbar: React.FC<MindMapToolbarProps> = ({
           title="导图布局策略"
           value={strategy}
           onChange={(event) => onStrategyChange(event.target.value as MindMapLayoutStrategy)}
-          className="h-8 rounded-md border border-amber-900/10 bg-white px-2 text-xs font-medium text-zinc-600 outline-none transition hover:bg-amber-50 focus:ring-2 focus:ring-amber-200"
+          className="h-9 rounded-lg border border-[var(--color-hairline-strong)] bg-white px-2.5 text-[13px] font-medium text-[var(--color-charcoal)] outline-none hover:bg-[var(--color-surface)] focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]"
         >
           <option value="classic-dagre">经典模式</option>
           <option value="balanced-mindmap">平衡模式</option>
@@ -97,7 +97,7 @@ export const MindMapToolbar: React.FC<MindMapToolbarProps> = ({
         aria-label="配色与背景"
         title="配色与背景"
         onClick={() => setAppearanceOpen((open) => !open)}
-        className={`flex h-8 w-8 items-center justify-center rounded-md transition ${appearanceOpen ? 'bg-indigo-100 text-indigo-700' : 'text-zinc-500 hover:bg-amber-50'}`}
+        className={`ui-icon-button ${appearanceOpen ? 'bg-[var(--color-tint-lavender)] text-[var(--color-primary-deep)]' : ''}`}
       >
         <Palette className="h-4 w-4" />
       </button>
@@ -108,7 +108,7 @@ export const MindMapToolbar: React.FC<MindMapToolbarProps> = ({
           aria-label="回到全图"
           title="回到全图"
           onClick={onResetFocus}
-          className="flex h-8 w-8 items-center justify-center rounded-md bg-zinc-100 text-zinc-700 transition hover:bg-zinc-200"
+          className="ui-icon-button bg-[var(--color-surface)]"
         >
           <X className="h-4 w-4" />
         </button>
@@ -118,7 +118,7 @@ export const MindMapToolbar: React.FC<MindMapToolbarProps> = ({
         aria-label="收起导图工具"
         title="收起导图工具"
         onClick={() => { setAppearanceOpen(false); setExpanded(false) }}
-        className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 transition hover:bg-amber-50 hover:text-zinc-700"
+        className="ui-icon-button"
       >
         <ChevronRight className="h-4 w-4" />
       </button>

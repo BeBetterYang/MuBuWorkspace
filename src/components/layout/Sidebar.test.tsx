@@ -28,7 +28,7 @@ describe('Sidebar', () => {
     render(<Sidebar />)
     fireEvent.click(screen.getByRole('button', { name: '设置' }))
     expect(useWorkspaceStore.getState().activeView).toBe('settings')
-    expect(screen.getByRole('button', { name: '设置' })).toHaveClass('bg-sky-50')
+    expect(screen.getByRole('button', { name: '设置' })).toHaveClass('bg-[var(--color-tint-lavender)]')
   })
 
   it('renders the web workspace and document creation menu', () => {

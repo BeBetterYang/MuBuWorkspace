@@ -31,7 +31,7 @@ export const Dialog: React.FC<DialogProps> = ({ isOpen, onClose, title, children
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-zinc-900/30 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-[var(--color-brand-navy)]/30 backdrop-blur-[2px]"
         onClick={onClose}
       />
 
@@ -40,14 +40,15 @@ export const Dialog: React.FC<DialogProps> = ({ isOpen, onClose, title, children
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative w-full max-w-md overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/95 text-zinc-800 p-6 shadow-[0_10px_40px_rgba(0,0,0,0.1)] backdrop-blur-xl transition-all animate-scale-up font-sans"
+        className="ui-modal relative w-full max-w-md overflow-hidden rounded-xl border border-[var(--color-hairline)] bg-[var(--color-canvas)] p-6 font-sans text-[var(--color-charcoal)] shadow-[var(--shadow-modal)]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-zinc-200/60">
-          <h3 id={titleId} className="text-lg font-semibold text-zinc-900 tracking-wide">{title}</h3>
+        <div className="flex items-center justify-between border-b border-[var(--color-hairline-soft)] pb-4">
+          <h3 id={titleId} className="text-lg font-semibold leading-7 text-[var(--color-ink)]">{title}</h3>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-800 transition focus:outline-none"
+            aria-label="关闭"
+            className="ui-icon-button"
           >
             <X className="h-5 w-5" />
           </button>

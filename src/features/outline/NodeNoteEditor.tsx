@@ -33,8 +33,8 @@ export const NodeNoteEditor: React.FC<NodeNoteEditorProps> = ({ nodeId, note }) 
         }}
         className={`flex h-6 w-6 items-center justify-center rounded-md border transition focus:outline-none ${
           note
-            ? 'border-amber-700/35 bg-amber-100/70 text-amber-900'
-            : 'border-transparent text-zinc-400 opacity-0 group-hover:opacity-100 hover:bg-[#EFECE3]'
+            ? 'border-[var(--color-primary)] bg-[var(--color-tint-lavender)] text-[var(--color-primary-deep)]'
+            : 'border-transparent text-zinc-400 opacity-0 group-hover:opacity-100 hover:bg-[var(--color-surface)]'
         }`}
         title={note ? '编辑备注' : '添加备注'}
       >
@@ -43,7 +43,7 @@ export const NodeNoteEditor: React.FC<NodeNoteEditorProps> = ({ nodeId, note }) 
 
       {isOpen && (
         <div
-          className="absolute right-0 top-7 z-50 w-72 rounded-lg border border-amber-900/20 bg-[#FFFCF5] p-3 shadow-xl"
+          className="ui-popover absolute right-0 top-7 z-50 w-72 p-3"
           onClick={(event) => event.stopPropagation()}
         >
           <div className="mb-2 flex items-center justify-between">
@@ -51,7 +51,7 @@ export const NodeNoteEditor: React.FC<NodeNoteEditorProps> = ({ nodeId, note }) 
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 focus:outline-none"
+              className="ui-icon-button h-7 w-7"
               title="关闭"
             >
               <X size={13} />
@@ -72,7 +72,7 @@ export const NodeNoteEditor: React.FC<NodeNoteEditorProps> = ({ nodeId, note }) 
                 commit()
               }
             }}
-            className="h-28 w-full resize-none rounded-md border border-amber-900/15 bg-white/70 p-2 text-sm text-zinc-800 outline-none focus:border-amber-700/40"
+            className="w-full resize-none rounded-lg border border-[var(--color-hairline-strong)] bg-white p-3 text-sm text-[var(--color-charcoal)] outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]"
             placeholder="记录补充说明"
             autoFocus
           />

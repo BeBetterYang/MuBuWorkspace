@@ -56,8 +56,8 @@ export const SettingsPage: React.FC = () => {
   };
 
   return (
-    <section className="flex h-full flex-col bg-[#FCFCFB] text-zinc-800 dark:bg-zinc-950 dark:text-zinc-100">
-      <header className="flex h-12 shrink-0 items-center justify-between border-b border-zinc-200/70 bg-white/70 px-5 dark:border-zinc-800/70 dark:bg-zinc-900/70">
+    <section className="settings-page flex h-full flex-col bg-[var(--color-surface-soft)] text-[var(--color-charcoal)] dark:bg-zinc-950 dark:text-zinc-100">
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-[var(--color-hairline)] bg-white px-6 dark:border-zinc-800 dark:bg-zinc-950">
         <div className="flex items-center gap-2">
           <Save size={16} className="text-zinc-700 dark:text-zinc-200" />
           <h1 className="text-sm font-semibold">设置</h1>
@@ -70,7 +70,7 @@ export const SettingsPage: React.FC = () => {
           onClick={() => setActiveView("editor")}
           aria-label="关闭设置"
           title="关闭面板"
-          className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 dark:focus:ring-zinc-700"
+          className="ui-icon-button"
         >
           <X size={16} />
         </button>
@@ -370,7 +370,7 @@ export const SettingsPage: React.FC = () => {
                   type="button"
                   onClick={() => void saveApiKey()}
                   disabled={!apiKey.trim()}
-                  className="flex h-8 items-center gap-1.5 rounded-md bg-zinc-900 px-3 text-xs font-medium text-white hover:bg-zinc-800 disabled:opacity-40"
+                  className="ui-button ui-button-primary h-10 min-h-0 px-4 text-[13px] disabled:opacity-40"
                 >
                   <KeyRound size={13} />
                   保存
@@ -378,7 +378,7 @@ export const SettingsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => void deleteApiKey()}
-                  className="flex h-8 items-center gap-1.5 rounded-md border border-zinc-200 px-3 text-xs font-medium text-zinc-600 hover:bg-zinc-50"
+                  className="ui-button ui-button-secondary h-10 min-h-0 px-4 text-[13px]"
                 >
                   <Bot size={13} />
                   删除
@@ -399,11 +399,11 @@ function SettingsSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900/70">
-      <div className="border-b border-zinc-100 px-4 py-3 text-sm font-semibold text-zinc-800 dark:border-zinc-800 dark:text-zinc-100">
+    <section className="ui-card overflow-hidden dark:border-zinc-800 dark:bg-zinc-900/70">
+      <div className="border-b border-[var(--color-hairline-soft)] px-5 py-4 text-sm font-semibold text-[var(--color-ink)] dark:border-zinc-800 dark:text-zinc-100">
         {title}
       </div>
-      <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+      <div className="divide-y divide-[var(--color-hairline-soft)] dark:divide-zinc-800">
         {children}
       </div>
     </section>
@@ -419,7 +419,7 @@ function SettingRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid gap-4 px-4 py-4 md:grid-cols-[1fr_auto] md:items-center">
+    <div className="grid gap-4 px-5 py-5 md:grid-cols-[1fr_auto] md:items-center">
       <div>
         <div className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
           {title}

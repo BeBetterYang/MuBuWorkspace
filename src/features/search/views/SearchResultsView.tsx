@@ -35,7 +35,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
           key={result.nodeId}
           type="button"
           onClick={() => onOpenResult(result.nodeId)}
-          className="flex w-full flex-col gap-2 rounded-xl border border-zinc-200/60 bg-white p-3.5 text-left transition-all hover:border-zinc-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)] focus:outline-none"
+          className="ui-card flex w-full flex-col gap-2 p-4 text-left transition-[border-color,box-shadow,transform] hover:border-[var(--color-primary)] hover:shadow-[var(--shadow-subtle)]"
         >
           {result.path && result.path.length > 0 && (
             <div className="flex items-center gap-1.5 overflow-hidden truncate text-[10px] font-medium text-zinc-400">
