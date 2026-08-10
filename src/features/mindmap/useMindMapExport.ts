@@ -1,6 +1,4 @@
 import React from 'react'
-import { toPng } from 'html-to-image'
-import { jsPDF } from 'jspdf'
 import { toast } from '../../components/common/Toast'
 import { exportMindMapAsset, saveFileDialog } from '../../services/siweiApi'
 import type { MindMapExportFormat } from './MindMapExportMenu'
@@ -37,6 +35,10 @@ export function useMindMapExport({
 
     setStatus('exporting')
     try {
+      const [{ toPng }, { jsPDF }] = await Promise.all([
+        import('html-to-image'),
+        import('jspdf'),
+      ])
       const dataUrl = await toPng(element, {
         backgroundColor: '#FAF8F4',
         cacheBust: true,
@@ -48,7 +50,7 @@ export function useMindMapExport({
       })
       const bytes = format === 'png'
         ? await dataUrlToBytes(dataUrl)
-        : await imageDataUrlToPdfBytes(dataUrl, element)
+        : await imageDataUrlToPdfBytes(dataUrl, element, jsPDF)
 
       await exportMindMapAsset(targetPath, format, bytes)
       toast.success('导图已导出')
@@ -73,10 +75,14 @@ async function dataUrlToBytes(dataUrl: string): Promise<number[]> {
   return [...new Uint8Array(buffer)]
 }
 
-async function imageDataUrlToPdfBytes(dataUrl: string, element: HTMLElement): Promise<number[]> {
+async function imageDataUrlToPdfBytes(
+  dataUrl: string,
+  element: HTMLElement,
+  PdfDocument: typeof import('jspdf')['jsPDF'],
+): Promise<number[]> {
   const width = Math.max(element.scrollWidth, element.clientWidth, 1)
   const height = Math.max(element.scrollHeight, element.clientHeight, 1)
-  const pdf = new jsPDF({
+  const pdf = new PdfDocument({
     orientation: width >= height ? 'landscape' : 'portrait',
     unit: 'px',
     format: [width, height],

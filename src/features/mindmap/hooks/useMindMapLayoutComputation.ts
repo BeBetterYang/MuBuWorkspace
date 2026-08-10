@@ -34,11 +34,12 @@ export interface MindMapLayoutHandlers {
 }
 
 interface UseMindMapLayoutComputationParams {
-  currentDoc: { root: OutlineNode; mindMapLayout?: MindMapLayoutState; mindMapLayouts?: Record<string, MindMapLayoutState>; mindMapAppearance?: MindMapAppearance } | null
+  currentDoc: { id: string; root: OutlineNode; mindMapLayout?: MindMapLayoutState; mindMapLayouts?: Record<string, MindMapLayoutState>; mindMapAppearance?: MindMapAppearance } | null
   collapsedNodeIds: Set<string>
   validFocusRootNodeId: string | null
   exportClean: boolean
   graphRootNode: OutlineNode | null
+  structureKey: string
   measuredNodeSizes: Record<string, MindMapNodeSize>
   measuredNodeSizeSignature: string
   experimentalLayoutEnabled: boolean
@@ -108,6 +109,7 @@ export function useMindMapLayoutComputation({
   validFocusRootNodeId,
   exportClean,
   graphRootNode,
+  structureKey,
   measuredNodeSizes,
   measuredNodeSizeSignature,
   experimentalLayoutEnabled,
@@ -128,24 +130,19 @@ export function useMindMapLayoutComputation({
   setLayoutDiagnostics,
   setFeedback,
 }: UseMindMapLayoutComputationParams): void {
-  const layoutDocument = React.useMemo(() => currentDoc ? {
+  const layoutDocument = currentDoc ? {
     root: currentDoc.root,
     mindMapLayout: currentDoc.mindMapLayout,
     mindMapLayouts: currentDoc.mindMapLayouts,
-  } : null, [currentDoc?.mindMapLayout, currentDoc?.mindMapLayouts, currentDoc?.root])
+  } : null
   const mindMapTheme = React.useMemo(
     () => resolveMindMapTheme(currentDoc?.mindMapAppearance?.themeId),
     [currentDoc?.mindMapAppearance?.themeId],
   )
   const themeLineColor = mindMapTheme.text
 
-  const previewLayoutRoot = React.useMemo(() => {
-    const root = graphRootNode ?? layoutDocument?.root
-    if (!root) return null
-
-    // 布局根节点保持稳定，避免初次渲染时坐标和连线短暂跳动。
-    return root
-  }, [graphRootNode, layoutDocument?.root])
+  const previewLayoutRoot = graphRootNode ?? layoutDocument?.root ?? null
+  const settledNodeSizeSignature = useSettledNodeSizeSignature(measuredNodeSizeSignature, Boolean(editingNodeId))
 
   React.useEffect(() => {
     if (!layoutDocument) return
@@ -282,23 +279,60 @@ export function useMindMapLayoutComputation({
   }, [
     collapsedBranchSides,
     collapsedNodeIds,
-    layoutDocument,
+    currentDoc?.id,
+    currentDoc?.mindMapLayout,
+    currentDoc?.mindMapLayouts,
     depthByNodeId,
     experimentalLayoutEnabled,
     forcePreview,
     graphRootNode,
     handlers,
     layoutStrategy,
-    measuredNodeSizeSignature,
+    settledNodeSizeSignature,
     previewLayoutRoot,
     searchQuery,
     setEdges,
     setFeedback,
     setLayoutDiagnostics,
     setNodes,
+    structureKey,
     validFocusRootNodeId,
     visibleNodeIds,
   ])
+
+  React.useEffect(() => {
+    if (!currentDoc) return
+    const nodeById = indexOutlineNodes(currentDoc.root)
+    const summaryTargets = buildSummaryTargets(currentDoc.root, visibleNodeIds, nodeById)
+    setNodes((currentNodes) => currentNodes.map((node) => {
+      const sourceNode = nodeById.get(node.id)
+      if (!sourceNode) return node
+      const summaryTarget = summaryTargets.get(node.id)
+      const nextHasTags = Boolean(sourceNode.tags?.length)
+      if (
+        node.data.label === sourceNode.text
+        && node.data.note === sourceNode.note
+        && node.data.checked === sourceNode.checked
+        && node.data.format === sourceNode.format
+        && node.data.hasTags === nextHasTags
+        && node.data.summary === summaryTarget?.summary
+        && node.data.summaryOwnerId === summaryTarget?.ownerId
+      ) return node
+      return {
+        ...node,
+        data: {
+          ...node.data,
+          label: sourceNode.text,
+          note: sourceNode.note,
+          checked: sourceNode.checked,
+          format: sourceNode.format,
+          hasTags: nextHasTags,
+          summary: summaryTarget?.summary,
+          summaryOwnerId: summaryTarget?.ownerId,
+        },
+      }
+    }))
+  }, [currentDoc?.root, setNodes, visibleNodeIds])
 
   React.useEffect(() => {
     const matchedNodeIdSet = new Set(matchedNodeIds)
@@ -340,4 +374,17 @@ export function useMindMapLayoutComputation({
       : { ...edge, style: { ...edge.style, stroke: themeLineColor } }))
   }, [setEdges, themeLineColor])
 
+}
+
+function useSettledNodeSizeSignature(signature: string, editing: boolean): string {
+  const [settledSignature, setSettledSignature] = React.useState(signature)
+  React.useEffect(() => {
+    if (!editing) {
+      setSettledSignature(signature)
+      return
+    }
+    const timer = window.setTimeout(() => setSettledSignature(signature), 80)
+    return () => window.clearTimeout(timer)
+  }, [editing, signature])
+  return settledSignature
 }

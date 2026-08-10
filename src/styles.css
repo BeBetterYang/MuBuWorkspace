@@ -99,6 +99,11 @@ select:focus-visible {
   box-shadow: none;
 }
 
+[data-mindmap-detail="low"] .mindmap-heavy-content {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 button:not(:disabled),
 [role="button"]:not([aria-disabled="true"]) {
   transition-property: color, background-color, border-color, box-shadow, opacity, transform;

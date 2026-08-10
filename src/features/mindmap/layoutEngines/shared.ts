@@ -224,12 +224,34 @@ export function resolveNodeSize(nodeId: string, sizes: Record<string, MindMapNod
 }
 
 function countOverlaps(nodes: FlowNode[], nodeSizes: Record<string, MindMapNodeSize>): number {
+  const gridSize = 256
+  const grid = new Map<string, number[]>()
+  const checkedPairs = new Set<string>()
   let count = 0
-  for (let leftIndex = 0; leftIndex < nodes.length; leftIndex += 1) {
-    for (let rightIndex = leftIndex + 1; rightIndex < nodes.length; rightIndex += 1) {
-      if (rectanglesOverlap(nodes[leftIndex], nodes[rightIndex], nodeSizes)) count += 1
+
+  nodes.forEach((node, nodeIndex) => {
+    const size = resolveNodeSize(node.id, nodeSizes)
+    const startColumn = Math.floor(node.position.x / gridSize)
+    const endColumn = Math.floor((node.position.x + size.width) / gridSize)
+    const startRow = Math.floor(node.position.y / gridSize)
+    const endRow = Math.floor((node.position.y + size.height) / gridSize)
+
+    for (let column = startColumn; column <= endColumn; column += 1) {
+      for (let row = startRow; row <= endRow; row += 1) {
+        const cellKey = `${column}:${row}`
+        const occupants = grid.get(cellKey) ?? []
+        occupants.forEach((otherIndex) => {
+          const pairKey = `${otherIndex}:${nodeIndex}`
+          if (checkedPairs.has(pairKey)) return
+          checkedPairs.add(pairKey)
+          if (rectanglesOverlap(nodes[otherIndex], node, nodeSizes)) count += 1
+        })
+        occupants.push(nodeIndex)
+        grid.set(cellKey, occupants)
+      }
     }
-  }
+  })
+
   return count
 }
 

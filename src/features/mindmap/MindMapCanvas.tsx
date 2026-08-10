@@ -68,6 +68,7 @@ export const MindMapCanvas = React.forwardRef<HTMLDivElement, MindMapCanvasProps
 
   const updateZoom = React.useCallback((nextZoom: number) => {
     canvasRootRef.current?.style.setProperty('--mindmap-inverse-zoom', String(1 / Math.max(nextZoom, 0.1)))
+    if (canvasRootRef.current) canvasRootRef.current.dataset.mindmapDetail = nextZoom < 0.45 ? 'low' : 'full'
     setZoom(nextZoom)
   }, [])
 
@@ -78,7 +79,7 @@ export const MindMapCanvas = React.forwardRef<HTMLDivElement, MindMapCanvasProps
   }, [onInit, updateZoom])
 
   return (
-    <div ref={assignCanvasRootRef} tabIndex={0} aria-busy={!ready} className={`relative h-full w-full outline-none transition-opacity duration-75 ${ready ? 'opacity-100' : 'pointer-events-none opacity-0'}`} style={{ backgroundColor, '--mindmap-inverse-zoom': 1 } as React.CSSProperties}>
+    <div ref={assignCanvasRootRef} data-mindmap-detail="full" tabIndex={0} aria-busy={!ready} className={`relative h-full w-full outline-none transition-opacity duration-75 ${ready ? 'opacity-100' : 'pointer-events-none opacity-0'}`} style={{ backgroundColor, '--mindmap-inverse-zoom': 1 } as React.CSSProperties}>
       <ReactFlow
         nodes={nodes}
         edges={edges}

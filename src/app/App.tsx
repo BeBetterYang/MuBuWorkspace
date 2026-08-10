@@ -5,11 +5,7 @@ import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'reac
 import { Sidebar } from '../components/layout/Sidebar'
 import { ToastContainer, toast } from '../components/common/Toast'
 import { useDocumentStore } from '../features/document/documentStore'
-import { LibraryWorkspace } from '../features/library/LibraryWorkspace'
 import { mindMapExportController } from '../features/mindmap/mindMapExportController'
-import { MindMapView } from '../features/mindmap/MindMapView'
-import { OutlineEditor } from '../features/outline/OutlineEditor'
-import { SettingsPage } from '../features/settings/SettingsPage'
 import { useSettingsStore } from '../features/settings/settingsStore'
 import {
   downloadDocumentExport,
@@ -28,6 +24,11 @@ import { useSuppressBrowserContextMenu } from './hooks/useSuppressBrowserContext
 import { useThemeManager } from './hooks/useThemeManager'
 import { useServerWorkspaceStore } from '../features/workspace/serverWorkspaceStore'
 import { useWorkspaceStore } from './workspaceStore'
+
+const LazyMindMapView = React.lazy(() => import('../features/mindmap/MindMapView').then((module) => ({ default: module.MindMapView })))
+const LazyOutlineEditor = React.lazy(() => import('../features/outline/OutlineEditor').then((module) => ({ default: module.OutlineEditor })))
+const LazySettingsPage = React.lazy(() => import('../features/settings/SettingsPage').then((module) => ({ default: module.SettingsPage })))
+const LazyLibraryWorkspace = React.lazy(() => import('../features/library/LibraryWorkspace').then((module) => ({ default: module.LibraryWorkspace })))
 
 export const App: React.FC = () => {
   useAppInitialization()
@@ -145,27 +146,27 @@ export const App: React.FC = () => {
               <AnimatePresence mode="wait">
                 {activeWorkspaceView === 'library' ? (
                   <motion.div key="library" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="absolute inset-0 h-full w-full">
-                    <LibraryWorkspace />
+                    <React.Suspense fallback={<WorkspaceLoading />}><LazyLibraryWorkspace /></React.Suspense>
                   </motion.div>
                 ) : activeWorkspaceView === 'settings' ? (
                   <motion.div key="settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="absolute inset-0 h-full w-full">
-                    <SettingsPage />
+                    <React.Suspense fallback={<WorkspaceLoading />}><LazySettingsPage /></React.Suspense>
                   </motion.div>
                 ) : (
                   <motion.div key={viewMode} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="absolute inset-0 h-full w-full bg-linen dark:bg-zinc-950">
-                    {viewMode === 'outline' && <OutlineEditor />}
-                    {viewMode === 'mindmap' && <MindMapView />}
+                    {viewMode === 'outline' && <React.Suspense fallback={<WorkspaceLoading />}><LazyOutlineEditor /></React.Suspense>}
+                    {viewMode === 'mindmap' && <React.Suspense fallback={<WorkspaceLoading />}><LazyMindMapView /></React.Suspense>}
                     {viewMode === 'split' && (
                       <PanelGroup orientation={useVerticalSplit ? 'vertical' : 'horizontal'}>
                         <Panel defaultSize={50} minSize={20}>
                           <div className="h-full overflow-hidden border-b border-r border-zinc-200/60 dark:border-zinc-800/60">
-                            <OutlineEditor />
+                            <React.Suspense fallback={<WorkspaceLoading />}><LazyOutlineEditor /></React.Suspense>
                           </div>
                         </Panel>
                         <PanelResizeHandle className="PanelResizeHandle" />
                         <Panel defaultSize={50} minSize={20}>
                           <div className="h-full overflow-hidden bg-[#FDFDFD] dark:bg-[#121212]">
-                            <MindMapView />
+                            <React.Suspense fallback={<WorkspaceLoading />}><LazyMindMapView /></React.Suspense>
                           </div>
                         </Panel>
                       </PanelGroup>
@@ -236,6 +237,12 @@ function chooseImportFile(format: ImportFormat): Promise<File | null> {
     input.click()
   })
 }
+
+const WorkspaceLoading: React.FC = () => (
+  <div className="flex h-full w-full items-center justify-center bg-white text-xs text-zinc-400" aria-busy="true">
+    正在载入视图…
+  </div>
+)
 
 function exportFormatLabel(format: ExportFormat): string {
   switch (format) {

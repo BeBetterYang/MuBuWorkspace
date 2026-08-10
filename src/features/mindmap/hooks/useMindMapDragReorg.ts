@@ -88,14 +88,11 @@ export function useMindMapDragReorg({
   }, [])
 
   const handleNodeDragStart = React.useCallback((_event: React.MouseEvent, draggedNode: Node) => {
-    const freeCanvasDrag = layoutStrategy === 'free-canvas' && mode === 'layout'
-    if (!freeCanvasDrag && (mode !== 'reorganize' || draggedNode.id === currentDoc?.root.id)) return
+    if (mode !== 'reorganize' || draggedNode.id === currentDoc?.root.id) return
     dragStartPositionsRef.current = new Map(nodes.map((node) => [node.id, node.position]))
-    draggedSubtreeIdsRef.current = freeCanvasDrag
-      ? new Set([draggedNode.id])
-      : new Set([draggedNode.id, ...getNodeDescendantIds(draggedNode.id)])
+    draggedSubtreeIdsRef.current = new Set([draggedNode.id, ...getNodeDescendantIds(draggedNode.id)])
     dragCandidateNodesRef.current = nodes.filter((node) => !draggedSubtreeIdsRef.current.has(node.id))
-  }, [currentDoc?.root.id, getNodeDescendantIds, layoutStrategy, mode, nodes])
+  }, [currentDoc?.root.id, getNodeDescendantIds, mode, nodes])
 
   const resolveDraggedNodeTarget = React.useCallback((draggedNode: Node) => {
     const candidates = dragCandidateNodesRef.current.length > 0
@@ -188,7 +185,6 @@ export function useMindMapDragReorg({
   }, [commitMindMapLayout, currentDoc, layoutStrategy, nodes])
 
   const handleNodeDrag = React.useCallback((_event: React.MouseEvent, draggedNode: Node) => {
-    if (layoutStrategy === 'free-canvas' && mode === 'layout') return
     if (mode !== 'reorganize' || draggedNode.id === currentDoc?.root.id) return
     if (!dragStartPositionsRef.current) handleNodeDragStart(_event, draggedNode)
     pendingDraggedNodeRef.current = draggedNode
@@ -235,25 +231,6 @@ export function useMindMapDragReorg({
     if (dragFrameRef.current !== null) window.cancelAnimationFrame(dragFrameRef.current)
     dragFrameRef.current = null
     pendingDraggedNodeRef.current = null
-    if (currentDoc && layoutStrategy === 'free-canvas' && mode === 'layout' && !forcePreviewActive) {
-      const startPositions = dragStartPositionsRef.current
-      const positions = nodes.reduce<Record<string, { x: number; y: number }>>((result, node) => {
-        result[node.id] = startPositions?.get(node.id) ?? node.position
-        return result
-      }, {})
-      positions[draggedNode.id] = draggedNode.position
-      commitMindMapLayout(createMindMapLayoutState(positions, {
-        strategy: 'free-canvas',
-        source: 'manual',
-        lockedNodeIds: new Set([draggedNode.id]),
-        previous: currentDoc.mindMapLayout,
-      }))
-      setFeedback('已保存自由布局位置')
-      dragStartPositionsRef.current = null
-      draggedSubtreeIdsRef.current = new Set()
-      dragCandidateNodesRef.current = []
-      return
-    }
     if (!currentDoc || mode !== 'reorganize' || draggedNode.id === currentDoc.root.id) return
     if (forcePreviewActive) return
 
@@ -283,7 +260,6 @@ export function useMindMapDragReorg({
     layoutStrategy,
     mode,
     moveNodeToParent,
-    nodes,
     parentByNodeId,
     resolveDraggedNodeTarget,
     resolveMove,

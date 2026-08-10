@@ -1,15 +1,10 @@
 import React from 'react'
 import type { MindMapLayoutStrategy, OutlineDocument } from '../../../types/document'
-import {
-  DEFAULT_MIND_MAP_LAYOUT_STRATEGY,
-  SUPPORTED_MIND_MAP_LAYOUT_STRATEGIES,
-} from '../mindMapLayoutState'
+import { DEFAULT_MIND_MAP_LAYOUT_STRATEGY } from '../mindMapLayoutState'
 import { createBranchSideKey, type MindMapBranchSide } from '../branchSideCollapse'
 
 function isSupportedMindMapLayoutStrategy(strategy: string): strategy is MindMapLayoutStrategy {
-  return SUPPORTED_MIND_MAP_LAYOUT_STRATEGIES.includes(
-    strategy as typeof SUPPORTED_MIND_MAP_LAYOUT_STRATEGIES[number],
-  )
+  return strategy === 'classic-dagre' || strategy === 'balanced-mindmap'
 }
 
 interface MindMapStrategyStateOptions {
@@ -38,7 +33,9 @@ export function useMindMapStrategyState({
     const savedStrategy = currentDoc?.mindMapLayout?.strategy
     const restoredStrategy = savedStrategy === 'radial-mindmap'
       ? 'balanced-mindmap'
-      : savedStrategy
+      : savedStrategy === 'free-canvas'
+        ? DEFAULT_MIND_MAP_LAYOUT_STRATEGY
+        : savedStrategy
     if (
       !currentDoc
       || !experimentalLayoutEnabled

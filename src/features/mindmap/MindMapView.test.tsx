@@ -840,7 +840,7 @@ describe('MindMapView', () => {
     expect(useDocumentStore.getState().currentDoc?.mindMapLayout?.nodes['node-1-1'].position).toEqual({ x: 240, y: 96 })
   })
 
-  it('exposes classic, balanced, and free layouts while migrating removed radial strategy', () => {
+  it('exposes only fixed automatic layouts while migrating removed radial strategy', async () => {
     useDocumentStore.setState((state) => ({
       currentDoc: state.currentDoc
         ? {
@@ -864,23 +864,18 @@ describe('MindMapView', () => {
     expect(availableStrategies.map(({ value }) => value)).toEqual([
       'classic-dagre',
       'balanced-mindmap',
-      'free-canvas',
     ])
-    expect(availableStrategies[2]?.label).toBe('自由模式')
-    return undefined
-
     expect(availableStrategies).toEqual([
       { label: '经典模式', value: 'classic-dagre' },
       { label: '平衡模式', value: 'balanced-mindmap' },
     ])
-    return undefined
 
     const strategySelect = screen.getByLabelText('导图布局策略')
-    expect(strategySelect).toHaveValue('balanced-mindmap')
+    await waitFor(() => expect(strategySelect).toHaveValue('balanced-mindmap'))
     expect(screen.getByRole('option', { name: '经典模式' })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: '思维导图模式' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: '平衡模式' })).toBeInTheDocument()
     expect(screen.queryByRole('option', { name: '径向' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('option', { name: '自由画布' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: '自由模式' })).not.toBeInTheDocument()
 
     fireEvent.change(strategySelect, { target: { value: 'classic-dagre' } })
 
@@ -1075,43 +1070,25 @@ describe('MindMapView', () => {
     expect(screen.queryByRole('button', { name: '导出导图' })).not.toBeInTheDocument()
   })
 
-  it('exposes free canvas while keeping force preview and diagnostics removed', () => {
+  it('keeps free canvas, force preview, and diagnostics removed', () => {
     render(<MindMapView />)
     expandMindMapToolbar()
 
-    expect(screen.getAllByRole('option').map((option) => (option as HTMLOptionElement).value)).toContain('free-canvas')
-    expect(screen.queryByRole('button', { name: '力导向预览' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: '布局诊断' })).not.toBeInTheDocument()
-    return undefined
-
-    expect(screen.queryByRole('option', { name: '自由画布' })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('option').map((option) => (option as HTMLOptionElement).value)).toEqual(['classic-dagre', 'balanced-mindmap'])
     expect(screen.queryByRole('button', { name: '力导向预览' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '布局诊断' })).not.toBeInTheDocument()
   })
 
-  it('persists manual positions without absorption in free mode', () => {
+  it('keeps nodes fixed until reorganize mode is enabled', () => {
     render(<MindMapView />)
     expandMindMapToolbar()
 
-    fireEvent.change(screen.getByLabelText('导图布局策略'), { target: { value: 'free-canvas' } })
-    expect(screen.getByTestId('react-flow')).toHaveAttribute('data-nodes-draggable', 'true')
+    expect(screen.getByTestId('react-flow')).toHaveAttribute('data-nodes-draggable', 'false')
     expect(screen.getByTestId('react-flow')).toHaveAttribute('data-nodes-connectable', 'false')
+    expect(screen.queryByRole('option', { name: '自由模式' })).not.toBeInTheDocument()
 
-    const draggedNode = screen.getByTestId('flow-node-node-2')
-    fireEvent.dragStart(draggedNode)
-    fireEvent.dragEnd(draggedNode)
-
-    expect(useDocumentStore.getState().currentDoc?.mindMapLayout).toMatchObject({
-      strategy: 'free-canvas',
-      nodes: {
-        'node-2': {
-          position: { x: 333, y: 222 },
-          source: 'manual',
-          locked: true,
-        },
-      },
-    })
-    expect(useDocumentStore.getState().currentDoc?.root.children.map((node) => node.id)).toEqual(['node-1', 'node-2'])
+    fireEvent.click(screen.getByRole('button', { name: '重组' }))
+    expect(screen.getByTestId('react-flow')).toHaveAttribute('data-nodes-draggable', 'true')
   })
 
   it('restores the saved coordinates when returning to a document layout mode', async () => {
@@ -1129,9 +1106,9 @@ describe('MindMapView', () => {
             strategy: 'classic-dagre',
             nodes: { 'node-2': { position: { x: 122, y: 42 }, source: 'manual', locked: true } },
           },
-          'free-canvas': {
+          'balanced-mindmap': {
             engineVersion: 3,
-            strategy: 'free-canvas',
+            strategy: 'balanced-mindmap',
             nodes: { 'node-2': { position: { x: 333, y: 222 }, source: 'manual', locked: true } },
           },
         },
@@ -1141,7 +1118,7 @@ describe('MindMapView', () => {
     expandMindMapToolbar()
     const strategy = screen.getByLabelText('导图布局策略')
 
-    fireEvent.change(strategy, { target: { value: 'free-canvas' } })
+    fireEvent.change(strategy, { target: { value: 'balanced-mindmap' } })
     await waitFor(() => expect(useDocumentStore.getState().currentDoc?.mindMapLayout?.nodes['node-2'].position).toEqual({ x: 333, y: 222 }))
 
     fireEvent.change(strategy, { target: { value: 'classic-dagre' } })

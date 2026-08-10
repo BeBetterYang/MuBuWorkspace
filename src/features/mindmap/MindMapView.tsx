@@ -28,7 +28,7 @@ import { useMindMapExportController } from './hooks/useMindMapExportController'
 import { useMindMapFocusFeedback } from './hooks/useMindMapFocusFeedback'
 import { useMindMapDragReorg } from './hooks/useMindMapDragReorg'
 import { NodeFormattingToolbar } from '../document/NodeFormattingToolbar'
-import { createMindMapLayoutState, getMindMapLayoutForStrategy } from './mindMapLayoutState'
+import { getMindMapLayoutForStrategy } from './mindMapLayoutState'
 
 export const MindMapView: React.FC = () => {
   const currentDoc = useDocumentStore((s) => s.currentDoc)
@@ -125,6 +125,7 @@ export const MindMapView: React.FC = () => {
     getNodeDescendantIds,
     visibleNodeIds,
     graphRootNode,
+    structureKey,
   } = useMindMapGraphSelectors({
     currentDoc,
     collapsedNodeIds,
@@ -242,6 +243,7 @@ export const MindMapView: React.FC = () => {
     validFocusRootNodeId,
     exportClean,
     graphRootNode,
+    structureKey,
     measuredNodeSizes,
     measuredNodeSizeSignature,
     experimentalLayoutEnabled,
@@ -413,18 +415,12 @@ export const MindMapView: React.FC = () => {
 
   const forcePreviewActive = Boolean(forcePreview)
   const handleLayoutStrategyChange = React.useCallback((strategy: Parameters<typeof handleStrategyChange>[0]) => {
-    const positions = nodes.reduce<Record<string, { x: number; y: number }>>((result, node) => {
-      result[node.id] = node.position
-      return result
-    }, {})
     if (currentDoc) {
       const savedLayout = getMindMapLayoutForStrategy(currentDoc, strategy)
-      commitMindMapLayout(savedLayout ?? (strategy === 'free-canvas' && Object.keys(positions).length > 0
-        ? createMindMapLayoutState(positions, { strategy, source: 'manual' })
-        : { engineVersion: 3, strategy, nodes: {} }))
+      commitMindMapLayout(savedLayout ?? { engineVersion: 3, strategy, nodes: {} })
     }
     handleStrategyChange(strategy)
-  }, [commitMindMapLayout, currentDoc, handleStrategyChange, nodes])
+  }, [commitMindMapLayout, currentDoc, handleStrategyChange])
   const overlayHandlers = useMindMapOverlayHandlers({
     contextMenu,
     experimentalLayoutEnabled,
@@ -452,7 +448,7 @@ export const MindMapView: React.FC = () => {
         ref={flowWrapperRef}
         nodes={nodes}
         edges={edges}
-        nodesDraggable={(mode === 'reorganize' || layoutStrategy === 'free-canvas') && !forcePreview}
+        nodesDraggable={mode === 'reorganize' && !forcePreview}
         nodesConnectable={false}
         backgroundColor={mindMapAppearance.backgroundColor ?? '#FFFFFF'}
         ready={canvasReady}

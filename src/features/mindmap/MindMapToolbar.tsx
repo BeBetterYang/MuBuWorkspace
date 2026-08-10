@@ -76,8 +76,7 @@ export const MindMapToolbar: React.FC<MindMapToolbarProps> = ({
         aria-label="自动整理"
         title="自动整理"
         onClick={onAutoLayout}
-        disabled={strategy === 'free-canvas'}
-        className="ui-icon-button disabled:cursor-not-allowed disabled:opacity-35"
+        className="ui-icon-button"
       >
         <LayoutDashboard className="h-4 w-4" />
       </button>
@@ -90,7 +89,6 @@ export const MindMapToolbar: React.FC<MindMapToolbarProps> = ({
         >
           <option value="classic-dagre">经典模式</option>
           <option value="balanced-mindmap">平衡模式</option>
-          <option value="free-canvas">自由模式</option>
         </select>
       <button
         type="button"

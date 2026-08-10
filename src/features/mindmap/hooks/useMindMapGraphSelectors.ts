@@ -20,36 +20,44 @@ export function useMindMapGraphSelectors({
   collapsedNodeIds,
   validFocusRootNodeId,
 }: MindMapGraphSelectorOptions) {
+  const structureKey = React.useMemo(
+    () => currentDoc ? `${currentDoc.id}:${createStructureSignature(currentDoc.root)}` : '',
+    [currentDoc?.id, currentDoc?.root],
+  )
+  // Content edits create a new root object, while these selectors only depend
+  // on ids and parent/child relationships.
+  const structuralRoot = React.useMemo(() => currentDoc?.root ?? null, [structureKey])
+
   const depthByNodeId = React.useMemo(
-    () => currentDoc ? getNodeDepthMap(currentDoc.root) : new Map<string, number>(),
-    [currentDoc],
+    () => structuralRoot ? getNodeDepthMap(structuralRoot) : new Map<string, number>(),
+    [structuralRoot],
   )
 
   const parentByNodeId = React.useMemo(
-    () => currentDoc ? getParentIdMap(currentDoc.root) : new Map<string, string | null>(),
-    [currentDoc],
+    () => structuralRoot ? getParentIdMap(structuralRoot) : new Map<string, string | null>(),
+    [structuralRoot],
   )
 
   const childIndexByNodeId = React.useMemo(
-    () => currentDoc ? getChildIndexMap(currentDoc.root) : new Map<string, number>(),
-    [currentDoc],
+    () => structuralRoot ? getChildIndexMap(structuralRoot) : new Map<string, number>(),
+    [structuralRoot],
   )
 
   const getNodeDescendantIds = React.useCallback((nodeId: string): Set<string> => {
-    return currentDoc ? getDescendantIds(currentDoc.root, nodeId) : new Set<string>()
-  }, [currentDoc])
+    return structuralRoot ? getDescendantIds(structuralRoot, nodeId) : new Set<string>()
+  }, [structuralRoot])
 
   const visibleNodeIds = React.useMemo(() => {
-    if (!currentDoc) return new Set<string>()
-    return new Set(getVisibleMindMapNodeIds(currentDoc.root, collapsedNodeIds, validFocusRootNodeId))
-  }, [collapsedNodeIds, currentDoc, validFocusRootNodeId])
+    if (!structuralRoot) return new Set<string>()
+    return new Set(getVisibleMindMapNodeIds(structuralRoot, collapsedNodeIds, validFocusRootNodeId))
+  }, [collapsedNodeIds, structuralRoot, validFocusRootNodeId])
 
   const graphRootNode = React.useMemo(() => {
-    if (!currentDoc) return null
+    if (!structuralRoot) return null
     return validFocusRootNodeId
-      ? getNodeSubtree(currentDoc.root, validFocusRootNodeId)
-      : currentDoc.root
-  }, [currentDoc, validFocusRootNodeId])
+      ? getNodeSubtree(structuralRoot, validFocusRootNodeId)
+      : structuralRoot
+  }, [structuralRoot, validFocusRootNodeId])
 
   return {
     depthByNodeId,
@@ -58,5 +66,17 @@ export function useMindMapGraphSelectors({
     getNodeDescendantIds,
     visibleNodeIds,
     graphRootNode,
+    structureKey,
   }
+}
+
+function createStructureSignature(root: OutlineDocument['root']): string {
+  const parts: string[] = []
+  const visit = (node: OutlineDocument['root']) => {
+    parts.push(node.id, '[', node.children.map((child) => child.id).join(','), ']')
+    if (node.summary) parts.push('{', node.summary.nodeIds.join(','), '}')
+    node.children.forEach(visit)
+  }
+  visit(root)
+  return parts.join('')
 }
