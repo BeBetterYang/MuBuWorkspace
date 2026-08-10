@@ -977,6 +977,7 @@ describe('MindMapView', () => {
 
     await waitFor(() => expect(screen.getByTestId('flow-node-root')).toBeInTheDocument())
     expect(screen.getByTestId('flow-node-node-2')).toBeInTheDocument()
+    expect(screen.queryByText('已聚焦当前分支：第一节点')).not.toBeInTheDocument()
   })
 
   it('exits branch focus when an external node focus request arrives', async () => {

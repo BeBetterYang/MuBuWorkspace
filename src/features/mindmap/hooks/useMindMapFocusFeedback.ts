@@ -6,7 +6,7 @@ import { findNodeById } from '../mindMapActions'
 interface MindMapFocusFeedbackOptions {
   currentDoc: OutlineDocument | null
   focusedNodeId: string | null
-  setFeedback: (message: string) => void
+  setFeedback: (message: string | null) => void
 }
 
 export function useMindMapFocusFeedback({
@@ -22,6 +22,8 @@ export function useMindMapFocusFeedback({
   React.useEffect(() => {
     if (focusedNodeTitle) {
       setFeedback(`已聚焦当前分支：${focusedNodeTitle}`)
+      return
     }
+    setFeedback(null)
   }, [focusedNodeTitle, setFeedback])
 }
