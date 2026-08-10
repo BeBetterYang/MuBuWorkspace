@@ -111,7 +111,7 @@ export const OutlineEditor: React.FC = () => {
   if (!currentDoc) {
     return (
       <div className="flex h-full flex-col items-center justify-center bg-white text-zinc-400 dark:bg-[#121214] dark:text-zinc-600">
-        <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-900/50 mb-4 shadow-sm border border-zinc-200/50 dark:border-zinc-800/50">
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md border border-[var(--color-hairline)] bg-[var(--color-surface)] dark:border-zinc-800 dark:bg-zinc-900/50">
           <FileText size={28} className="text-zinc-400 dark:text-zinc-500" />
         </div>
         <p className="text-sm font-medium tracking-wide text-zinc-500 dark:text-zinc-400 mb-1">未选择任何织物</p>

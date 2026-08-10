@@ -31,7 +31,7 @@ export const Dialog: React.FC<DialogProps> = ({ isOpen, onClose, title, children
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-[var(--color-brand-navy)]/30 backdrop-blur-[2px]"
+        className="fixed inset-0 bg-black/20"
         onClick={onClose}
       />
 
@@ -40,7 +40,7 @@ export const Dialog: React.FC<DialogProps> = ({ isOpen, onClose, title, children
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="ui-modal relative w-full max-w-md overflow-hidden rounded-xl border border-[var(--color-hairline)] bg-[var(--color-canvas)] p-6 font-sans text-[var(--color-charcoal)] shadow-[var(--shadow-modal)]"
+        className="ui-modal relative w-full max-w-md overflow-hidden rounded-lg border border-[var(--color-hairline)] bg-[var(--color-canvas)] p-5 font-sans text-[var(--color-charcoal)] shadow-md"
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[var(--color-hairline-soft)] pb-4">

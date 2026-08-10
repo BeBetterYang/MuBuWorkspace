@@ -98,7 +98,7 @@ export const NodeFormattingToolbar: React.FC<{
   React.useEffect(() => setPanel(null), [nodeId, selectedIds.length])
   if (!node) return null
 
-  const button = (active = false) => `flex h-8 w-8 items-center justify-center rounded-lg ${active ? 'bg-[#d6b6f6]/25 text-white ring-1 ring-[#d6b6f6]/40' : 'text-zinc-300 hover:bg-white/10 hover:text-white'}`
+  const button = (active = false) => `flex h-8 w-8 items-center justify-center rounded ${active ? 'bg-[#efedea] text-[var(--color-ink)]' : 'text-[var(--color-steel)] hover:bg-[#efedea] hover:text-[var(--color-ink)]'}`
   const togglePanel = (next: Exclude<ToolbarPanel, null>, event: React.MouseEvent<HTMLButtonElement>) => {
     setPanelLeft(event.currentTarget.offsetLeft + event.currentTarget.offsetWidth / 2)
     setPanel((current) => current === next ? null : next)
@@ -177,12 +177,12 @@ export const NodeFormattingToolbar: React.FC<{
         </div>
       )}
 
-      <div className="node-formatting-toolbar flex max-w-[calc(100vw-1.5rem)] items-center gap-0.5 overflow-x-auto rounded-xl border border-white/10 bg-[var(--color-brand-navy)] p-1.5 shadow-[var(--shadow-modal)]">
-        {selectedIds.length > 1 && <span className="px-2 text-xs text-zinc-300">{selectedIds.length} 项</span>}
+      <div className="node-formatting-toolbar flex max-w-[calc(100vw-1.5rem)] items-center gap-0.5 overflow-x-auto rounded-md border border-[var(--color-hairline)] bg-white p-1.5 shadow-[var(--shadow-modal)]">
+        {selectedIds.length > 1 && <span className="px-2 text-xs text-[var(--color-steel)]">{selectedIds.length} 项</span>}
         <button type="button" title="文字格式" aria-label="文字格式" className={button(panel === 'type')} onClick={(event) => togglePanel('type', event)}><Type size={18} /></button>
         <button type="button" title="标记颜色" aria-label="标记颜色" className={button(panel === 'marker')} onMouseDown={(event) => event.preventDefault()} onClick={(event) => togglePanel('marker', event)}><Highlighter size={17} style={{ color: format.backgroundColor ?? '#fde047' }} /></button>
-        <button type="button" title="文字颜色" aria-label="文字颜色" className={button(panel === 'textColor')} onMouseDown={(event) => event.preventDefault()} onClick={(event) => togglePanel('textColor', event)}><Baseline size={17} style={{ color: format.color ?? '#f4f4f5' }} /></button>
-        <span className="mx-1 h-5 w-px bg-white/15" />
+        <button type="button" title="文字颜色" aria-label="文字颜色" className={button(panel === 'textColor')} onMouseDown={(event) => event.preventDefault()} onClick={(event) => togglePanel('textColor', event)}><Baseline size={17} style={{ color: format.color ?? '#37352f' }} /></button>
+        <span className="mx-1 h-5 w-px bg-[var(--color-hairline-strong)]" />
         <button type="button" title="待办" aria-label="待办" className={button(node.checked !== undefined)} onClick={toggleTodo}><CheckSquare size={18} /></button>
         {!isSummaryMode && <button type="button" title="概要" aria-label="概要" disabled={!canAddSummary} className={`${button(Boolean(summaryOwner?.summary))} disabled:opacity-30`} onClick={(event) => { if (summaryOwner?.summary) updateSummary(createdSummaryOwnerId, { ...summaryOwner.summary, nodeIds: orderedSummaryNodeIds }); togglePanel('summary', event) }}><Braces size={18} /></button>}
         <button type="button" title="编辑描述" aria-label="编辑描述" className={button(Boolean(node.note))} onClick={requestNoteEditing}><MessageSquareMore size={18} /></button>
@@ -191,10 +191,10 @@ export const NodeFormattingToolbar: React.FC<{
         <button type="button" title="插入图片" aria-label="插入图片" className={button(Boolean(format.imageDataUrls?.length || format.imageDataUrl))} onClick={openImagePicker}><ImagePlus size={18} /></button>
         <button type="button" title="链接" aria-label="链接" className={button(Boolean(format.link))} onClick={(event) => togglePanel('link', event)}><Link2 size={18} /></button>
         <button type="button" title="代码" aria-label="代码" className={button(Boolean(format.code))} onClick={() => updateAll({ code: !format.code })}><Code2 size={18} /></button>
-        <span className="mx-1 h-5 w-px bg-white/15" />
+        <span className="mx-1 h-5 w-px bg-[var(--color-hairline-strong)]" />
         {!isSummaryMode && onFocusBranch && selectedIds.length === 1 && <button type="button" title="进入此主题" aria-label="进入此主题" className={button()} onClick={() => onFocusBranch(nodeId)}><Focus size={18} /></button>}
         <button type="button" title="更多" aria-label="更多" className={button(panel === 'more')} onClick={(event) => togglePanel('more', event)}><MoreHorizontal size={19} /></button>
-        {(isSummaryMode || nodeId !== rootId) && <button type="button" title={isSummaryMode ? '删除概要节点' : '删除主题'} aria-label={isSummaryMode ? '删除概要节点' : '删除主题'} className={`${button()} hover:!bg-rose-500/20 hover:!text-rose-300`} onClick={() => isSummaryMode ? summaryOwnerId && updateSummary(summaryOwnerId, undefined) : selectedIds.length > 1 ? onDeleteSelected?.() : deleteNode(nodeId)}><Trash2 size={17} /></button>}
+        {(isSummaryMode || nodeId !== rootId) && <button type="button" title={isSummaryMode ? '删除概要节点' : '删除主题'} aria-label={isSummaryMode ? '删除概要节点' : '删除主题'} className={`${button()} hover:!bg-[#fbe4e4] hover:!text-[var(--color-error)]`} onClick={() => isSummaryMode ? summaryOwnerId && updateSummary(summaryOwnerId, undefined) : selectedIds.length > 1 ? onDeleteSelected?.() : deleteNode(nodeId)}><Trash2 size={17} /></button>}
       </div>
     </div>
   )

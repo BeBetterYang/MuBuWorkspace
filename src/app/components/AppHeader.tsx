@@ -6,7 +6,6 @@ import {
   Redo2,
   Undo2,
 } from 'lucide-react'
-import { motion } from 'framer-motion'
 import type { SaveStatus, ViewMode } from '../../features/document/documentStore'
 import { ViewSwitcher } from './ViewSwitcher'
 
@@ -60,12 +59,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         : { label: '已保存', className: 'text-[var(--color-steel)]' }
 
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.16 }}
-      className={`z-[100] grid min-h-[calc(3rem+var(--safe-top))] shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 overflow-visible border-b border-[var(--color-hairline)] bg-[var(--color-canvas)] pr-[calc(0.75rem+var(--safe-right))] pt-[var(--safe-top)] dark:border-zinc-800 dark:bg-zinc-950 ${sidebarCollapsed ? 'pl-[calc(3.25rem+var(--safe-left))]' : 'pl-4'}`}
+    <header
+      className={`z-[100] grid min-h-[calc(2.75rem+var(--safe-top))] shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 overflow-visible border-b border-[var(--color-hairline)] bg-[var(--color-canvas)] pr-[calc(0.75rem+var(--safe-right))] pt-[var(--safe-top)] dark:border-zinc-800 dark:bg-zinc-950 ${sidebarCollapsed ? 'pl-[calc(3.25rem+var(--safe-left))]' : 'pl-4'}`}
     >
       <div className="flex min-w-0 items-center justify-start gap-2 overflow-hidden">
         <div className="min-w-0 cursor-default truncate whitespace-nowrap px-1 text-sm text-zinc-500" title={documentPath.join(' / ')}>
@@ -138,6 +133,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           )}
         </div>
       </div>
-    </motion.header>
+    </header>
   )
 }

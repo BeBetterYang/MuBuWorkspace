@@ -257,7 +257,7 @@ const MindMapNodeComponent: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, 
           type="button"
           aria-label={`展开节点，${data.childCount} 个子节点`}
           title={`展开 ${data.childCount} 个子节点`}
-          className="nodrag nopan absolute left-full top-1/2 z-10 ml-1.5 flex h-5 min-w-5 -translate-y-1/2 items-center justify-center rounded-full border border-indigo-500 bg-white px-1 text-[9px] font-bold leading-none text-indigo-600 shadow-sm transition hover:scale-105 hover:bg-indigo-50"
+          className="nodrag nopan absolute left-full top-1/2 z-10 ml-1.5 flex h-5 min-w-5 -translate-y-1/2 items-center justify-center rounded border border-[var(--color-hairline-strong)] bg-white px-1 text-[9px] font-medium leading-none text-[var(--color-ink)] transition-colors hover:bg-[#efedea]"
           onClick={(event) => {
             event.stopPropagation()
             data.onToggleCollapse(id)
@@ -272,7 +272,7 @@ const MindMapNodeComponent: React.FC<NodeProps<MindMapNodeData>> = ({ id, data, 
           type="button"
           aria-label={hasChildren ? '收起子节点' : '增加子节点'}
           title={hasChildren ? '收起子节点' : '增加子节点'}
-          className="nodrag nopan absolute left-full top-1/2 z-10 ml-1.5 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full border border-indigo-400 bg-white text-indigo-600 opacity-0 shadow-sm transition hover:scale-105 hover:border-indigo-600 hover:bg-indigo-50 group-hover:opacity-100 group-focus-within:opacity-100"
+          className="nodrag nopan absolute left-full top-1/2 z-10 ml-1.5 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded border border-[var(--color-hairline-strong)] bg-white text-[var(--color-ink)] opacity-0 transition-colors hover:bg-[#efedea] group-hover:opacity-100 group-focus-within:opacity-100"
           onClick={(event) => {
             event.stopPropagation()
             if (hasChildren) data.onToggleCollapse(id)

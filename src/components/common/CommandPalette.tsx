@@ -41,12 +41,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/20 px-4 pt-[15vh] backdrop-blur-sm dark:bg-black/45"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/20 px-4 pt-[15vh] dark:bg-black/45"
       onClick={onClose}
       role="presentation"
     >
       <div 
-        className="w-full max-w-lg overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-900"
+        className="w-full max-w-lg overflow-hidden rounded-lg border border-[var(--color-hairline)] bg-white shadow-md dark:border-zinc-800 dark:bg-zinc-900"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

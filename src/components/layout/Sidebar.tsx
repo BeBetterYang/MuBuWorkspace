@@ -184,7 +184,7 @@ export const Sidebar: React.FC = () => {
           <button type="button" onClick={() => void updateSettings({ sidebarCollapsed: false })} className="flex h-7 w-7 items-center justify-center rounded bg-transparent text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900" title="展开侧边栏 Ctrl + \">
             {collapsedRecentOpen ? <ChevronRight size={16} /> : <Menu size={16} />}
           </button>
-          {collapsedRecentOpen && <div className="absolute left-0 top-9 w-60 pt-2" onMouseEnter={keepCollapsedPreviewOpen} onMouseLeave={scheduleCollapsedPreviewClose}><div className="apple-material rounded-2xl p-3 text-[14px]">
+          {collapsedRecentOpen && <div className="absolute left-0 top-9 w-60 pt-2" onMouseEnter={keepCollapsedPreviewOpen} onMouseLeave={scheduleCollapsedPreviewClose}><div className="apple-material rounded-md p-3 text-[14px]">
             <div className="mb-2 text-xs text-zinc-500">最近编辑</div>
             <div className="space-y-0.5">{recentDocuments.map((item) => <button key={item.id} type="button" className="flex h-9 w-full items-center rounded-md px-2 text-left text-sm text-[var(--color-slate)] hover:bg-[var(--color-tint-lavender)] hover:text-[var(--color-ink)]" onClick={() => void openDocument(item.id)}><span className="truncate">{item.name}</span></button>)}</div>
           </div></div>}
@@ -194,22 +194,22 @@ export const Sidebar: React.FC = () => {
   }
 
   return (
-    <aside className="relative flex h-full w-[270px] shrink-0 flex-col border-r border-[var(--color-hairline)] bg-[var(--color-surface)] pb-[var(--safe-bottom)] pt-[var(--safe-top)] text-[14px] text-[var(--color-charcoal)] dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 max-[900px]:fixed max-[900px]:inset-y-0 max-[900px]:left-0 max-[900px]:z-[120] max-[900px]:h-[100dvh] max-[900px]:w-[min(320px,88vw)] max-[900px]:shadow-[var(--shadow-modal)] min-[901px]:pb-0 min-[901px]:pt-0">
-      <div className="flex h-12 items-center gap-2 px-3">
-        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-200 text-[10px] text-zinc-600">思</div>
+    <aside className="relative flex h-full w-[240px] shrink-0 flex-col border-r border-[var(--color-hairline)] bg-[var(--color-surface)] pb-[var(--safe-bottom)] pt-[var(--safe-top)] text-[14px] text-[var(--color-charcoal)] dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 max-[900px]:fixed max-[900px]:inset-y-0 max-[900px]:left-0 max-[900px]:z-[120] max-[900px]:h-[100dvh] max-[900px]:w-[min(300px,88vw)] max-[900px]:shadow-[var(--shadow-modal)] min-[901px]:pb-0 min-[901px]:pt-0">
+      <div className="flex h-11 items-center gap-2 px-3">
+        <div data-avatar="true" className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-200 text-[10px] text-zinc-600">思</div>
         <span className="text-xs font-medium">?</span><ChevronDown size={13} className="text-zinc-500" />
         <div className="flex-1" />
-        <button type="button" onClick={() => void updateSettings({ sidebarCollapsed: true })} className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-400 hover:bg-white hover:text-zinc-800 dark:hover:bg-zinc-900" title="收起侧栏">
+        <button type="button" onClick={() => void updateSettings({ sidebarCollapsed: true })} className="flex h-7 w-7 items-center justify-center rounded text-zinc-400 hover:bg-[#efedea] hover:text-zinc-800 dark:hover:bg-zinc-900" title="收起侧栏">
           <ChevronLeft size={14} />
         </button>
       </div>
 
       <div ref={createMenuRef} className="relative flex items-center gap-2 px-3 pb-3">
-        <label className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-lg border border-[var(--color-hairline)] bg-[var(--color-canvas)] px-3 text-[var(--color-stone)] shadow-[var(--shadow-subtle)] focus-within:border-[var(--color-primary)]">
+        <label className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-md border border-[var(--color-hairline)] bg-[var(--color-canvas)] px-3 text-[var(--color-stone)] focus-within:border-transparent focus-within:ring-2 focus-within:ring-[var(--color-primary)]">
           <Search size={14} className="shrink-0" />
           <input value={query} onChange={(event) => setQuery(event.target.value)} className="sidebar-search-input min-w-0 flex-1 bg-transparent text-sm text-zinc-700 outline-none" placeholder="搜索文档" aria-label="搜索文档" />
         </label>
-        <button type="button" aria-label="新建" onClick={() => setCreateMenuOpen((open) => !open)} className="ui-icon-button ui-icon-button-primary sidebar-create-button h-10 w-10" title="新建文档或文件夹"><Plus size={18} strokeWidth={2.2} /></button>
+        <button type="button" aria-label="新建" onClick={() => setCreateMenuOpen((open) => !open)} className="ui-icon-button ui-icon-button-primary sidebar-create-button h-10 w-10" title="新建文档或文件夹"><Plus size={17} strokeWidth={1.8} /></button>
         {createMenuOpen && <div className="ui-popover absolute right-3 top-12 z-40 w-40 p-1.5"><CreateMenuButton icon={FilePlus2} label="新建文档" onClick={() => { setDraft({ type: 'document', name: '', parentId: selectedFolderId }); setCreateMenuOpen(false) }} /><CreateMenuButton icon={FolderPlus} label="新建文件夹" onClick={() => { setDraft({ type: 'folder', name: '', parentId: selectedFolderId }); setCreateMenuOpen(false) }} /></div>}
       </div>
 
@@ -256,8 +256,8 @@ export const Sidebar: React.FC = () => {
         return <SidebarItemMenu item={item} x={contextMenu.x} y={contextMenu.y} moving={moveItemId === item.id} folders={items.filter((candidate) => candidate.type === 'folder' && candidate.id !== item.id)} onPointerDown={(event) => event.stopPropagation()} onOpen={() => void openDocument(item.id)} onOpenNew={() => window.open(`${window.location.origin}/?document=${encodeURIComponent(item.id)}`, '_blank', 'noopener,noreferrer')} onRename={() => { setRenameDraft({ id: item.id, name: item.name }); setContextMenu(null) }} onToggleMove={() => setMoveItemId(moveItemId === item.id ? null : item.id)} onMove={(parentId) => void moveContextItem(parentId)} onCopy={() => void duplicateItem(item.id).then(() => setContextMenu(null)).catch((error) => toast.error(`复制失败：${String(error)}`))} onShare={() => void navigator.clipboard.writeText(`${window.location.origin}/?document=${encodeURIComponent(item.id)}`).then(() => toast.success('文档链接已复制'))} onDelete={() => { setContextMenu(null); void removeWithConfirmation(item.id) }} />
       })()}
 
-      <div className="border-t border-zinc-200/70 p-2 dark:border-zinc-800">
-        <button type="button" onClick={() => setWorkspaceView('settings')} className={`flex h-10 w-full items-center gap-2 rounded-md px-2.5 text-sm ${activeWorkspaceView === 'settings' ? 'bg-[var(--color-tint-lavender)] font-medium text-[var(--color-ink)] dark:bg-zinc-800 dark:text-white' : 'text-[var(--color-slate)] hover:bg-white hover:text-[var(--color-ink)] dark:hover:bg-zinc-900 dark:hover:text-white'}`}>
+      <div className="border-t border-[var(--color-hairline)] p-2 dark:border-zinc-800">
+        <button type="button" onClick={() => { setWorkspaceView('settings'); if (window.matchMedia?.('(max-width: 900px)').matches) void updateSettings({ sidebarCollapsed: true }) }} className={`flex h-10 w-full items-center gap-2 rounded-md px-2.5 text-sm ${activeWorkspaceView === 'settings' ? 'bg-[var(--color-tint-lavender)] font-medium text-[var(--color-ink)] dark:bg-zinc-800 dark:text-white' : 'text-[var(--color-slate)] hover:bg-[#efedea] hover:text-[var(--color-ink)] dark:hover:bg-zinc-900 dark:hover:text-white'}`}>
           <Settings size={15} /> 设置
         </button>
       </div>
@@ -279,7 +279,7 @@ const SidebarItemMenu: React.FC<{
   {item.type === 'document' && <ItemMenuButton icon={FileText} label="打开" onClick={onOpen} />}
   <ItemMenuButton icon={Pencil} label="重命名" onClick={onRename} />
   <ItemMenuButton icon={MoveRight} label="移动到" onClick={onToggleMove} />
-  {moving && <div className="ml-2 max-h-36 overflow-y-auto rounded-lg border border-[var(--color-hairline)] bg-[var(--color-surface-soft)] p-1"><button type="button" className="block h-8 w-full rounded-md px-2 text-left text-xs hover:bg-white" onClick={() => onMove(null)}>我的文档</button>{folders.map((folder) => <button key={folder.id} type="button" className="block h-8 w-full truncate rounded-md px-2 text-left text-xs hover:bg-white" onClick={() => onMove(folder.id)}>{folder.name}</button>)}</div>}
+  {moving && <div className="ml-2 max-h-36 overflow-y-auto rounded-md border border-[var(--color-hairline)] bg-[var(--color-surface-soft)] p-1"><button type="button" className="block h-8 w-full rounded px-2 text-left text-xs hover:bg-[#efedea]" onClick={() => onMove(null)}>我的文档</button>{folders.map((folder) => <button key={folder.id} type="button" className="block h-8 w-full truncate rounded px-2 text-left text-xs hover:bg-[#efedea]" onClick={() => onMove(folder.id)}>{folder.name}</button>)}</div>}
   <ItemMenuButton icon={Copy} label="复制" onClick={onCopy} />
   <ItemMenuButton icon={LockKeyhole} label="加密" onClick={() => toast.info('服务器加密功能待管理员配置')} />
   <div className="my-1 border-t border-[var(--color-hairline)]" />
@@ -314,7 +314,7 @@ const DocumentTree: React.FC<{
     const active = isFolder ? selectedFolderId === item.id : currentDocumentId === item.id
     return (
       <React.Fragment key={item.id}>
-        <div className={`sidebar-tree-row group flex h-9 items-center rounded-md pr-1 text-sm transition-colors ${active ? 'bg-[var(--color-tint-lavender)] font-medium text-[var(--color-ink)] dark:bg-zinc-800 dark:text-white' : 'text-[var(--color-slate)] hover:bg-white hover:text-[var(--color-ink)] dark:text-zinc-400 dark:hover:bg-zinc-900'}`} style={{ paddingLeft: 8 + depth * 16 }}>
+        <div className={`sidebar-tree-row group flex h-9 items-center rounded-md pr-1 text-sm transition-colors ${active ? 'bg-[var(--color-tint-lavender)] font-medium text-[var(--color-ink)] dark:bg-zinc-800 dark:text-white' : 'text-[var(--color-slate)] hover:bg-[#efedea] hover:text-[var(--color-ink)] dark:text-zinc-400 dark:hover:bg-zinc-900'}`} style={{ paddingLeft: 8 + depth * 16 }}>
           <button type="button" onClick={() => isFolder ? onToggle(item.id) : onOpenDocument(item.id)} className="flex min-w-0 flex-1 items-center gap-1.5 text-left">
             {isFolder && <ChevronRight size={12} className={`shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`} />}
             {isFolder && (expanded ? <FolderOpen size={14} className="shrink-0 text-[var(--color-steel)]" /> : <Folder size={14} className="shrink-0 text-[var(--color-steel)]" />)}

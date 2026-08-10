@@ -1,6 +1,5 @@
 import React from 'react'
 import { LogOut } from 'lucide-react'
-import { AnimatePresence, motion } from 'framer-motion'
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels'
 import { Sidebar } from '../components/layout/Sidebar'
 import { ToastContainer, toast } from '../components/common/Toast'
@@ -116,7 +115,7 @@ export const App: React.FC = () => {
         <button
           type="button"
           aria-label="关闭侧边栏"
-          className="fixed inset-0 z-[80] bg-black/10 backdrop-blur-[1px] min-[901px]:hidden"
+          className="fixed inset-0 z-[80] bg-black/15 min-[901px]:hidden"
           onClick={() => void updateSettings({ sidebarCollapsed: true })}
         />
       )}
@@ -143,17 +142,17 @@ export const App: React.FC = () => {
         <main className="relative flex-1 overflow-hidden bg-linen dark:bg-zinc-950">
           <div className="flex h-full w-full overflow-hidden">
             <div className="relative min-w-0 flex-1 overflow-hidden">
-              <AnimatePresence mode="wait">
+              <>
                 {activeWorkspaceView === 'library' ? (
-                  <motion.div key="library" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="absolute inset-0 h-full w-full">
+                  <div key="library" className="absolute inset-0 h-full w-full">
                     <React.Suspense fallback={<WorkspaceLoading />}><LazyLibraryWorkspace /></React.Suspense>
-                  </motion.div>
+                  </div>
                 ) : activeWorkspaceView === 'settings' ? (
-                  <motion.div key="settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="absolute inset-0 h-full w-full">
+                  <div key="settings" className="absolute inset-0 h-full w-full">
                     <React.Suspense fallback={<WorkspaceLoading />}><LazySettingsPage /></React.Suspense>
-                  </motion.div>
+                  </div>
                 ) : (
-                  <motion.div key={viewMode} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="absolute inset-0 h-full w-full bg-linen dark:bg-zinc-950">
+                  <div key={viewMode} className="absolute inset-0 h-full w-full bg-linen dark:bg-zinc-950">
                     {viewMode === 'outline' && <React.Suspense fallback={<WorkspaceLoading />}><LazyOutlineEditor /></React.Suspense>}
                     {viewMode === 'mindmap' && <React.Suspense fallback={<WorkspaceLoading />}><LazyMindMapView /></React.Suspense>}
                     {viewMode === 'split' && (
@@ -171,9 +170,9 @@ export const App: React.FC = () => {
                         </Panel>
                       </PanelGroup>
                     )}
-                  </motion.div>
+                  </div>
                 )}
-              </AnimatePresence>
+              </>
             </div>
           </div>
         </main>

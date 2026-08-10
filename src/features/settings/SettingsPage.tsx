@@ -35,7 +35,7 @@ export const SettingsPage: React.FC = () => {
 
   return (
     <section className="settings-page flex h-full flex-col bg-[var(--color-surface-soft)] text-[var(--color-charcoal)] dark:bg-zinc-950 dark:text-zinc-100">
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-[var(--color-hairline)] bg-white px-6 dark:border-zinc-800 dark:bg-zinc-950">
+      <header className="flex h-11 shrink-0 items-center justify-between border-b border-[var(--color-hairline)] bg-white px-4 dark:border-zinc-800 dark:bg-zinc-950">
         <div className="flex items-center gap-2">
           <Save size={16} className="text-zinc-700 dark:text-zinc-200" />
           <h1 className="text-sm font-semibold">设置</h1>
@@ -54,8 +54,8 @@ export const SettingsPage: React.FC = () => {
         </button>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-6 py-5">
-        <div className="mx-auto flex max-w-3xl flex-col gap-5">
+      <main className="flex-1 overflow-y-auto px-6 py-8">
+        <div className="mx-auto flex max-w-3xl flex-col gap-8">
           <SettingsSection title="编辑">
             <SettingRow title="自动保存" description="关闭后只保留手动保存。">
               <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-zinc-600">
@@ -255,8 +255,8 @@ function SettingsSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="ui-card overflow-hidden dark:border-zinc-800 dark:bg-zinc-900/70">
-      <div className="border-b border-[var(--color-hairline-soft)] px-5 py-4 text-sm font-semibold text-[var(--color-ink)] dark:border-zinc-800 dark:text-zinc-100">
+    <section className="overflow-hidden border-y border-[var(--color-hairline)] bg-white dark:border-zinc-800 dark:bg-zinc-900/70">
+      <div className="border-b border-[var(--color-hairline-soft)] px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[var(--color-steel)] dark:border-zinc-800 dark:text-zinc-300">
         {title}
       </div>
       <div className="divide-y divide-[var(--color-hairline-soft)] dark:divide-zinc-800">
@@ -275,7 +275,7 @@ function SettingRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid gap-4 px-5 py-5 md:grid-cols-[1fr_auto] md:items-center">
+    <div className="grid gap-4 px-4 py-4 md:grid-cols-[1fr_auto] md:items-center">
       <div>
         <div className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
           {title}
