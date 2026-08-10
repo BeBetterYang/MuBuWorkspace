@@ -120,7 +120,7 @@ export const MindMapCanvas = React.forwardRef<HTMLDivElement, MindMapCanvasProps
         style={{ backgroundColor }}
       >
       </ReactFlow>
-      <svg aria-hidden="true" className="pointer-events-none absolute inset-0 z-[3] h-full w-full overflow-hidden">
+      <svg aria-hidden="true" className="pointer-events-none absolute inset-0 z-[1] h-full w-full overflow-hidden">
         <g ref={staticEdgeTransformRef}>
           <StaticMindMapEdgeLayer nodes={nodes} edges={edges} />
         </g>
