@@ -36,3 +36,20 @@ test('uses an overlay sidebar in portrait and a docked sidebar in landscape', as
   const position = await sidebar.evaluate((element) => getComputedStyle(element).position)
   expect(position).toBe(testInfo.project.name === 'ipad-portrait' ? 'fixed' : 'relative')
 })
+
+test('opens the theme panel without clipping it inside the canvas toolbar', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
+  const closeSidebar = page.getByRole('button', { name: '关闭侧边栏' })
+  if (await closeSidebar.isVisible()) await closeSidebar.click({ position: { x: 800, y: 500 } })
+  await page.getByRole('button', { name: '思维导图' }).click()
+  await page.getByRole('button', { name: '展开导图工具' }).click()
+  await page.getByRole('button', { name: '配色与背景' }).click()
+
+  const themeButton = page.getByRole('button', { name: '配色 清风' })
+  await expect(themeButton).toBeVisible()
+  const box = await themeButton.boundingBox()
+  expect(box).not.toBeNull()
+  expect(box!.x).toBeGreaterThanOrEqual(0)
+  expect(box!.y).toBeGreaterThanOrEqual(0)
+  expect(box!.x + box!.width).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth))
+})

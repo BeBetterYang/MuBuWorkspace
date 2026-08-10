@@ -48,7 +48,7 @@ export const MindMapToolbar: React.FC<MindMapToolbarProps> = ({
   }
 
   return (
-    <div className="mindmap-floating-toolbar safe-floating-top apple-material absolute right-[calc(0.75rem+var(--safe-right))] z-30 flex max-w-[calc(100vw-1.5rem)] items-center gap-1 overflow-x-auto rounded-2xl p-1">
+    <div className="mindmap-floating-toolbar safe-floating-top apple-material absolute right-[calc(0.75rem+var(--safe-right))] z-30 flex max-w-[calc(100vw-1.5rem)] items-center gap-1 overflow-visible rounded-2xl p-1">
       <button
         type="button"
         aria-label="布局"
