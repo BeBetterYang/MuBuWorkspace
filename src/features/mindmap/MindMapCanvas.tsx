@@ -9,6 +9,7 @@ import ReactFlow, {
 } from 'reactflow'
 
 import { MindMapNode, type MindMapNodeData } from './MindMapNode'
+import { createStaticMindMapEdgeBundle, StaticMindMapEdgeLayer } from './StaticMindMapEdges'
 
 const nodeTypes = {
   custom: MindMapNode,
@@ -58,7 +59,13 @@ export const MindMapCanvas = React.forwardRef<HTMLDivElement, MindMapCanvasProps
 }, ref) => {
   const flowInstanceRef = React.useRef<ReactFlowInstance | null>(null)
   const canvasRootRef = React.useRef<HTMLDivElement | null>(null)
+  const staticEdgeTransformRef = React.useRef<SVGGElement | null>(null)
   const [zoom, setZoom] = React.useState(1)
+  const staticEdges = React.useMemo(() => createStaticMindMapEdgeBundle(nodes, edges), [edges, nodes])
+
+  const updateStaticEdgeViewport = React.useCallback((viewport: { x: number; y: number; zoom: number }) => {
+    staticEdgeTransformRef.current?.setAttribute('transform', `translate(${viewport.x} ${viewport.y}) scale(${viewport.zoom})`)
+  }, [])
 
   const assignCanvasRootRef = React.useCallback((node: HTMLDivElement | null) => {
     canvasRootRef.current = node
@@ -74,15 +81,17 @@ export const MindMapCanvas = React.forwardRef<HTMLDivElement, MindMapCanvasProps
 
   const handleInit = React.useCallback((instance: ReactFlowInstance) => {
     flowInstanceRef.current = instance
-    updateZoom(instance.getZoom?.() ?? 1)
+    const viewport = instance.getViewport?.() ?? { x: 0, y: 0, zoom: instance.getZoom?.() ?? 1 }
+    updateZoom(viewport.zoom)
+    updateStaticEdgeViewport(viewport)
     onInit(instance)
-  }, [onInit, updateZoom])
+  }, [onInit, updateStaticEdgeViewport, updateZoom])
 
   return (
     <div ref={assignCanvasRootRef} data-mindmap-detail="full" tabIndex={0} aria-busy={!ready} className={`relative h-full w-full outline-none transition-opacity duration-75 ${ready ? 'opacity-100' : 'pointer-events-none opacity-0'}`} style={{ backgroundColor, '--mindmap-inverse-zoom': 1 } as React.CSSProperties}>
       <ReactFlow
         nodes={nodes}
-        edges={edges}
+        edges={staticEdges}
         nodeTypes={nodeTypes}
         onNodeClick={onNodeClick}
         onNodeDoubleClick={onNodeDoubleClick}
@@ -95,7 +104,7 @@ export const MindMapCanvas = React.forwardRef<HTMLDivElement, MindMapCanvasProps
         onNodeDragStop={onNodeDragStop}
         onKeyDown={onKeyDown}
         onInit={handleInit}
-        onMove={(_event, viewport) => updateZoom(viewport.zoom)}
+        onMove={(_event, viewport) => { updateZoom(viewport.zoom); updateStaticEdgeViewport(viewport) }}
         onMoveEnd={(_event, viewport) => onViewportChange(viewport)}
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
         fitViewOptions={{ padding: 0.25, maxZoom: 1 }}
@@ -111,6 +120,11 @@ export const MindMapCanvas = React.forwardRef<HTMLDivElement, MindMapCanvasProps
         style={{ backgroundColor }}
       >
       </ReactFlow>
+      <svg aria-hidden="true" className="pointer-events-none absolute inset-0 z-[3] h-full w-full overflow-hidden">
+        <g ref={staticEdgeTransformRef}>
+          <StaticMindMapEdgeLayer nodes={nodes} edges={edges} />
+        </g>
+      </svg>
       <div className="mindmap-zoom-controls safe-floating-bottom ui-popover absolute left-[calc(0.75rem+var(--safe-left))] z-20 flex w-11 flex-col overflow-hidden">
         <button type="button" aria-label="放大" title="放大" className="flex h-8 items-center justify-center border-b border-zinc-100 text-xl text-zinc-700 hover:bg-zinc-50" onClick={() => void flowInstanceRef.current?.zoomIn?.({ duration: 120 })}>+</button>
         <button type="button" aria-label="恢复 100%" title="点击恢复 100%" className="flex h-8 items-center justify-center border-b border-zinc-100 px-0.5 text-[10px] font-medium text-zinc-600 hover:bg-zinc-50" onClick={() => void flowInstanceRef.current?.zoomTo?.(1, { duration: 160 })}>{Math.round(zoom * 100)}%</button>
